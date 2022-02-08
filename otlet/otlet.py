@@ -26,6 +26,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from http.client import HTTPException
 import textwrap
 from argparse import ArgumentParser
+import requests
+from . import __version__
 from . import *
 
 def init_args():
@@ -34,23 +36,38 @@ def init_args():
         epilog='(c) 2022-present Noah Tanner, released under the terms of the MIT License'
     )
     parser.add_argument('package',
-                        help='The package to search for.')
-    parser.add_argument('version',
+                        help='The package to search for.',
+                        nargs='*')
+    parser.add_argument('pkgversion',
                         help='Specific version to get info for. (default: current)',
                         nargs='*',
                         default="")
+    parser.add_argument('-v', '--version',
+                        help="print version information and exit",
+                        action='store_true')
+    
+    args = parser.parse_args()
+    if args.version:
+        print(textwrap.dedent(f"""
+                        otlet v{__version__}
+                        requests v{requests.__version__}
+                        (c) 2022-present Noah Tanner, released under the terms of the MIT License"""))
+        raise SystemExit(0)
+    if not args.package:
+        raise SystemExit("Please supply a package to search for: i.e. 'otlet sampleproject'")
 
-    return parser.parse_args()
+    return args
 
 def main():
     args = init_args()
+
     try:
-        if args.version:
-            pkginfo = get_release_info(args.package, args.version[0])
+        if args.pkgversion:
+            pkginfo = get_release_info(args.package[0], args.pkgversion[0])
         else:
-            pkginfo = get_info(args.package)
+            pkginfo = get_info(args.package[0])
     except HTTPException as err:
-        raise SystemExit(f"{args.package}: " + err.__str__())
+        raise SystemExit(f"{args.package[0]}: " + err.__str__())
 
     indent_chars = '\n\t\t'
     print(textwrap.dedent(f'''Info for package {pkginfo.name} v{pkginfo.version}

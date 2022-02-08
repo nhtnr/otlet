@@ -26,5 +26,5 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 from .types import *
 from .http import *
 
-__version__ = '0.1.0'
+__version__ = '0.1.2'
 __license__ = 'MIT'

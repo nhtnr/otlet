@@ -1,5 +1,5 @@
 """
-otlet
+otlet.otlet - otlet cli tool
 CLI tool and wrapper for PyPI JSON Web API
 
 Copyright (c) 2022 Noah Tanner
@@ -23,12 +23,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from http.client import HTTPException
 import textwrap
 from argparse import ArgumentParser
 import requests
 from . import __version__
 from . import *
+from .exceptions import PyPIAPIError
 
 def init_args():
     parser = ArgumentParser(
@@ -64,7 +64,7 @@ def main():
             pkginfo = get_release_info(args.package[0], args.package[1])
         else:
             pkginfo = get_info(args.package[0])
-    except HTTPException as err:
+    except PyPIAPIError as err:
         raise SystemExit(f"{args.package[0]}: " + err.__str__())
 
     indent_chars = '\n\t\t'

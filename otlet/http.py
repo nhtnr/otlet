@@ -1,5 +1,5 @@
 """
-otlet.http
+otlet.http - otlet http request functions
 CLI tool and wrapper for PyPI JSON Web API
 
 Copyright (c) 2022 Noah Tanner
@@ -23,25 +23,33 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-from http.client import HTTPException
 import requests
+from .exceptions import *
 from .types import *
 
 def attempt_request(url: str) -> requests.Response:
     """Attempt to get info from PyPI API."""
     res = requests.get(url)
     if res.status_code == 404:
-        raise HTTPException("Package not found in PyPI repository. Please check your spelling and try again.")
+        return PyPIPackageNotFound("Package not found in PyPI repository. Please check your spelling and try again.")
     return res
 
 def get_full(package: str) -> PackageObject:
     """Get full response from PyPI API."""
     res = attempt_request(f"https://pypi.org/pypi/{package}/json")
+    if isinstance(res, PyPIPackageNotFound):
+        raise res
     return PackageObject.construct(res.json())
 
 def get_release_full(package: str, release: str) -> PackageObject:
     """Get full response from PyPI API for specific version."""
     res = attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
+    if isinstance(res, PyPIPackageNotFound):
+        res = attempt_request(f"https://pypi.org/pypi/{package}/json") # check if plain package is available
+        if isinstance(res, PyPIPackageNotFound):
+            raise res # if not, raise PyPIPackageNotFound
+        else:
+            raise PyPIPackageVersionNotFound(f"Version {release} not found in PyPI repository. Please double-check and try again.")
     return PackageObject.construct(res.json())
 
 def get_info(package: str) -> PackageInfoObject:

@@ -1,5 +1,5 @@
 """
-otlet.types
+otlet.types - types used by otlet for carrying API response data
 CLI tool and wrapper for PyPI JSON Web API
 
 Copyright (c) 2022 Noah Tanner

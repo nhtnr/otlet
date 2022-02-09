@@ -2,6 +2,7 @@
 name = "otlet"
 version = "0.1.2"
 description = "CLI tool and wrapper for PyPI JSON Web API"
+repository = "https://github.com/nhtnr/otlet"
 license = "MIT"
 authors = ["kevinshome <noah.tanner7@gmail.com>"]
 

@@ -24,10 +24,11 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import requests
+from typing import Union
 from .exceptions import *
 from .types import *
 
-def attempt_request(url: str) -> requests.Response:
+def attempt_request(url: str) -> Union[requests.Response, PyPIPackageNotFound]:
     """Attempt to get info from PyPI API."""
     res = requests.get(url)
     if res.status_code == 404:

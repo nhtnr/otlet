@@ -36,14 +36,13 @@ def init_args():
         epilog='(c) 2022-present Noah Tanner, released under the terms of the MIT License'
     )
     parser.add_argument('package',
-                        help='The package to search for.',
-                        nargs='*')
-    parser.add_argument('pkgversion',
-                        help='Specific version to get info for. (default: current)',
+                        metavar=('package [VERSION]'),
+                        default=[],
                         nargs='*',
-                        default="")
+                        type=str,
+                        help='The package to search for. (version is optional)')
     parser.add_argument('-v', '--version',
-                        help="print version information and exit",
+                        help='print version information and exit',
                         action='store_true')
     
     args = parser.parse_args()
@@ -60,10 +59,9 @@ def init_args():
 
 def main():
     args = init_args()
-
     try:
-        if args.pkgversion:
-            pkginfo = get_release_info(args.package[0], args.pkgversion[0])
+        if len(args.package) > 1:
+            pkginfo = get_release_info(args.package[0], args.package[1])
         else:
             pkginfo = get_info(args.package[0])
     except HTTPException as err:

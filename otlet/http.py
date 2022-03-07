@@ -23,35 +23,42 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
-import requests
+import json
+import http.client
+from urllib.request import urlopen as request_url
+from urllib.error import HTTPError
 from typing import Union
 from .exceptions import *
 from .types import *
 
-def attempt_request(url: str) -> Union[requests.Response, PyPIPackageNotFound]:
-    """Attempt to get info from PyPI API."""
-    res = requests.get(url)
-    if res.status_code == 404:
-        return PyPIPackageNotFound("Package not found in PyPI repository. Please check your spelling and try again.")
+def _attempt_request(url: str) -> Union[http.client.HTTPResponse, PyPIPackageNotFound]:
+    """Attempt request to given URL. Do not use this function."""
+    try:
+        res = request_url(url)
+    except HTTPError as err:
+        if err.code == 404:
+            return PyPIPackageNotFound("Package not found in PyPI repository. Please check your spelling and try again.")
+        else:
+            raise err
     return res
 
 def get_full(package: str) -> PackageObject:
     """Get full response from PyPI API."""
-    res = attempt_request(f"https://pypi.org/pypi/{package}/json")
+    res = _attempt_request(f"https://pypi.org/pypi/{package}/json")
     if isinstance(res, PyPIPackageNotFound):
         raise res
-    return PackageObject.construct(res.json())
+    return PackageObject.construct(json.loads(res.readlines()[0].decode()))
 
 def get_release_full(package: str, release: str) -> PackageObject:
     """Get full response from PyPI API for specific version."""
-    res = attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
+    res = _attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
     if isinstance(res, PyPIPackageNotFound):
-        res = attempt_request(f"https://pypi.org/pypi/{package}/json") # check if plain package is available
+        res = _attempt_request(f"https://pypi.org/pypi/{package}/json") # check if plain package is available
         if isinstance(res, PyPIPackageNotFound):
             raise res # if not, raise PyPIPackageNotFound
         else:
             raise PyPIPackageVersionNotFound(f"Version {release} not found in PyPI repository. Please double-check and try again.")
-    return PackageObject.construct(res.json())
+    return PackageObject.construct(json.loads(res.readlines()[0].decode()))
 
 def get_info(package: str) -> PackageInfoObject:
     """Get package info from PyPI API."""

@@ -25,7 +25,6 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 
 import textwrap
 from argparse import ArgumentParser
-import requests
 from . import __version__
 from . import *
 from .exceptions import PyPIAPIError
@@ -49,7 +48,6 @@ def init_args():
     if args.version:
         print(textwrap.dedent(f"""
                         otlet v{__version__}
-                        requests v{requests.__version__}
                         (c) 2022-present Noah Tanner, released under the terms of the MIT License"""))
         raise SystemExit(0)
     if not args.package:

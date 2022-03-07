@@ -5,7 +5,7 @@
 
 # Installing
 
-Otlet is recommended for use with Python 3.8 or greater, however it may be used as far back as Python 3.5, but these versions have not been tested.
+Otlet supports Python 3.7 and above, but at least Python 3.8 is recommended.
 
 The simplest method is installing otlet from PyPI using pip:  
   

@@ -31,3 +31,5 @@ class PyPIPackageNotFound(PyPIAPIError):
 
 class PyPIPackageVersionNotFound(PyPIAPIError):
     pass
+
+__all__ = ["PyPIAPIError", "PyPIPackageNotFound", "PyPIPackageVersionNotFound"]

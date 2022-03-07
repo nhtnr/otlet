@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "otlet"
-version = "0.2.0"
+version = "0.2.0-1"
 description = "CLI tool and wrapper for PyPI JSON Web API"
 repository = "https://github.com/nhtnr/otlet"
 license = "MIT"
@@ -10,7 +10,7 @@ authors = ["kevinshome <noah.tanner7@gmail.com>"]
 otlet = "otlet.otlet:main"
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.7"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

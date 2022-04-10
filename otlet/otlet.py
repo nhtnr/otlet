@@ -73,6 +73,7 @@ def main():
     Author: {pkginfo.author} <{pkginfo.author_email}>
     License: {pkginfo.license}
     Python Version(s): {pkginfo.requires_python if pkginfo.requires_python else "Not Defined"}
-    Dependencies: ({len(pkginfo.requires_dist) if pkginfo.requires_dist else 0}) \n\t\t{indent_chars.join(pkginfo.requires_dist) if pkginfo.requires_dist else ""}'''))
+    Dependencies: ({len(pkginfo.requires_dist) if pkginfo.requires_dist else 0}) \n\t\t{indent_chars.join(pkginfo.requires_dist) if pkginfo.requires_dist else ""}
+    {f"==NOTE== This version has been yanked from PyPI. (Reason: {pkginfo.yanked_reason})" if pkginfo.yanked else ""}'''))
 
     raise SystemExit(0)

@@ -1,3 +1,7 @@
+# 0.2.1
+
+- add notifier if version has been yanked
+
 # 0.2.0
 
 - remove `requests` dependency in favor of stdlib's `http.client` implementation

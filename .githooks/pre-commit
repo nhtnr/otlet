@@ -1,0 +1,18 @@
+#!/usr/bin/env python3
+
+import subprocess
+
+errors = []
+
+print("== BEGIN PRE-COMMIT HOOK ==")
+try:
+    subprocess.check_call(["pytest"])
+except subprocess.CalledProcessError:
+    errors.append("\t - one or more pytest cases failed, please check output above and try again")
+print("== END PRE-COMMIT HOOK ==")
+
+if errors:
+    print("== COMMIT FAILED!! ONE OR MORE ERRORS OCCURRED ==")
+    for err in errors:
+        print(err)
+    raise SystemExit(1)

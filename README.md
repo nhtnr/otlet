@@ -3,6 +3,13 @@
     CLI tool and wrapper for the PyPI JSON Web API.
 </div>
 
+[![license-mit](https://img.shields.io/github/license/nhtnr/otlet)](https://github.com/nhtnr/otlet/blob/main/LICENSE)
+[![build-workflow](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml/badge.svg?branch=master&event=push)](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml)
+[![github-issues](https://img.shields.io/github/issues/nhtnr/otlet)](https://github.com/astro-devel/nhtnr/otlet)
+[![github-pull-requests](https://img.shields.io/github/issues-pr/nhtnr/otlet)](https://github.com/nhtnr/otlet/pulls)
+![pypi-python-versions](https://img.shields.io/pypi/pyversions/otlet)
+[![pypi-package-version](https://img.shields.io/pypi/v/otlet)](https://pypi.org/project/otlet/)
+
 # Installing
 
 Otlet supports Python 3.7 and above, but at least Python 3.8 is recommended.
@@ -22,4 +29,13 @@ cd dist && pip install ./path-to-otlet-wheel.whl
 
 # install directly with pyproject.toml and masonry (poetry build API)
 pip install .
+```
+
+# Development
+
+If you plan to contribute to otlet and clone the repository, please run the following commands to set up your environment:
+
+```
+poetry install # to set up virtualenv, and install pytest and mypy
+git config --local core.hooksPath .githooks/ # add otlet's hooks to your local repo config
 ```

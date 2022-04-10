@@ -4,7 +4,7 @@
 </div>
 
 [![license-mit](https://img.shields.io/github/license/nhtnr/otlet)](https://github.com/nhtnr/otlet/blob/main/LICENSE)
-[![build-workflow](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml/badge.svg?branch=master&event=push)](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml)
+[![build-workflow](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml/badge.svg?branch=main&event=push)](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml)
 [![github-issues](https://img.shields.io/github/issues/nhtnr/otlet)](https://github.com/astro-devel/nhtnr/otlet)
 [![github-pull-requests](https://img.shields.io/github/issues-pr/nhtnr/otlet)](https://github.com/nhtnr/otlet/pulls)
 ![pypi-python-versions](https://img.shields.io/pypi/pyversions/otlet)

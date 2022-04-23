@@ -24,56 +24,75 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import textwrap
+import time
 from argparse import ArgumentParser
 from . import __version__
 from . import *
 from .exceptions import PyPIAPIError
 
+
 def init_args():
     parser = ArgumentParser(
-        prog='otlet',
-        epilog='(c) 2022-present Noah Tanner, released under the terms of the MIT License'
+        prog="otlet",
+        epilog="(c) 2022-present Noah Tanner, released under the terms of the MIT License",
     )
-    parser.add_argument('package',
-                        metavar=('package [VERSION]'),
-                        default=[],
-                        nargs='*',
-                        type=str,
-                        help='The package to search for. (version is optional)')
-    parser.add_argument('-v', '--version',
-                        help='print version information and exit',
-                        action='store_true')
-    
+    parser.add_argument(
+        "package",
+        metavar=("package [VERSION]"),
+        default=[],
+        nargs="*",
+        type=str,
+        help="The package to search for. (version is optional)",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        help="print version information and exit",
+        action="store_true",
+    )
+
     args = parser.parse_args()
     if args.version:
-        print(textwrap.dedent(f"""
+        print(
+            textwrap.dedent(
+                f"""
                         otlet v{__version__}
-                        (c) 2022-present Noah Tanner, released under the terms of the MIT License"""))
+                        (c) 2022-present Noah Tanner, released under the terms of the MIT License"""
+            )
+        )
         raise SystemExit(0)
     if not args.package:
-        raise SystemExit("Please supply a package to search for: i.e. 'otlet sampleproject'")
+        raise SystemExit(
+            "Please supply a package to search for: i.e. 'otlet sampleproject'"
+        )
 
     return args
+
 
 def main():
     args = init_args()
     try:
         if len(args.package) > 1:
-            pkginfo = get_release_info(args.package[0], args.package[1])
+            pkg = get_release_full(args.package[0], args.package[1])
         else:
-            pkginfo = get_info(args.package[0])
+            pkg = get_full(args.package[0])
     except PyPIAPIError as err:
         raise SystemExit(f"{args.package[0]}: " + err.__str__())
 
-    indent_chars = '\n\t\t'
-    print(textwrap.dedent(f'''Info for package {pkginfo.name} v{pkginfo.version}
+    indent_chars = "\n\t\t"
+    print(
+        textwrap.dedent(
+            f"""Info for package {pkg.info.name} v{pkg.info.version}
 
-    Summary: {pkginfo.summary}
-    URL: {pkginfo.package_url}
-    Author: {pkginfo.author} <{pkginfo.author_email}>
-    License: {pkginfo.license}
-    Python Version(s): {pkginfo.requires_python if pkginfo.requires_python else "Not Defined"}
-    Dependencies: ({len(pkginfo.requires_dist) if pkginfo.requires_dist else 0}) \n\t\t{indent_chars.join(pkginfo.requires_dist) if pkginfo.requires_dist else ""}
-    {f"==NOTE== This version has been yanked from PyPI. (Reason: {pkginfo.yanked_reason})" if pkginfo.yanked else ""}'''))
+    Summary: {pkg.info.summary}
+    Released: {pkg.upload_time.date()} at {pkg.upload_time.astimezone().timetz()}
+    URL: {pkg.info.package_url}
+    Author: {pkg.info.author} <{pkg.info.author_email}>
+    License: {pkg.info.license}
+    Python Version(s): {pkg.info.requires_python if pkg.info.requires_python else "Not Defined"}
+    Dependencies: ({len(pkg.info.requires_dist) if pkg.info.requires_dist else 0}) \n\t\t{indent_chars.join(pkg.info.requires_dist) if pkg.info.requires_dist else ""}
+    {f"==NOTE== This version has been yanked from PyPI. (Reason: {pkg.info.yanked_reason})" if pkg.info.yanked else ""}"""
+        )
+    )
 
     raise SystemExit(0)

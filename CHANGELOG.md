@@ -1,5 +1,9 @@
-# 0.2.1
+# 0.3.0 ( current version )
 
+- implement PackageObject.releases
+- add util.py
+- deprecate http.get_info and http.get_release_info, removal in 1.0.0
+- add release date and time to CLI return
 - add notifier if version has been yanked
 
 # 0.2.0

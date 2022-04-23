@@ -30,6 +30,7 @@ from typing import Any, Optional, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
 
+
 @dataclass
 class PackageInfoObject:
     author: str
@@ -62,33 +63,36 @@ class PackageInfoObject:
     @classmethod
     def construct(cls, pkginfo: Dict[str, Any]):
         return cls(
-            pkginfo['author'],
-            pkginfo['author_email'],
-            pkginfo['bugtrack_url'],
-            pkginfo['classifiers'],
-            pkginfo['description'],
-            pkginfo['description_content_type'],
-            pkginfo['docs_url'],
-            pkginfo['download_url'],
-            SimpleNamespace(**pkginfo['downloads']),
-            pkginfo['home_page'],
-            pkginfo['keywords'],
-            pkginfo['license'],
-            pkginfo['maintainer'],
-            pkginfo['maintainer_email'],
-            pkginfo['name'],
-            pkginfo['package_url'],
-            pkginfo['platform'],
-            pkginfo['project_url'],
-            SimpleNamespace(**pkginfo['project_urls']) if pkginfo['project_urls'] else None,
-            pkginfo['release_url'],
-            pkginfo['requires_dist'],
-            pkginfo['requires_python'],
-            pkginfo['summary'],
-            pkginfo['version'],
-            pkginfo['yanked'],
-            pkginfo['yanked_reason']
+            pkginfo["author"],
+            pkginfo["author_email"],
+            pkginfo["bugtrack_url"],
+            pkginfo["classifiers"],
+            pkginfo["description"],
+            pkginfo["description_content_type"],
+            pkginfo["docs_url"],
+            pkginfo["download_url"],
+            SimpleNamespace(**pkginfo["downloads"]),
+            pkginfo["home_page"],
+            pkginfo["keywords"],
+            pkginfo["license"],
+            pkginfo["maintainer"],
+            pkginfo["maintainer_email"],
+            pkginfo["name"],
+            pkginfo["package_url"],
+            pkginfo["platform"],
+            pkginfo["project_url"],
+            SimpleNamespace(**pkginfo["project_urls"])
+            if pkginfo["project_urls"]
+            else None,
+            pkginfo["release_url"],
+            pkginfo["requires_dist"],
+            pkginfo["requires_python"],
+            pkginfo["summary"],
+            pkginfo["version"],
+            pkginfo["yanked"],
+            pkginfo["yanked_reason"],
         )
+
 
 @dataclass
 class URLReleaseObject:
@@ -109,25 +113,28 @@ class URLReleaseObject:
     @classmethod
     def construct(cls, url_release_item: Dict[str, Any]):
         return cls(
-            url_release_item['comment_text'],
-            SimpleNamespace(**url_release_item['digests']),
-            url_release_item['downloads'],
-            url_release_item['filename'],
-            url_release_item['has_sig'],
-            url_release_item['md5_digest'],
-            url_release_item['packagetype'],
-            url_release_item['python_version'],
-            url_release_item['size'],
+            url_release_item["comment_text"],
+            SimpleNamespace(**url_release_item["digests"]),
+            url_release_item["downloads"],
+            url_release_item["filename"],
+            url_release_item["has_sig"],
+            url_release_item["md5_digest"],
+            url_release_item["packagetype"],
+            url_release_item["python_version"],
+            url_release_item["size"],
             datetime.datetime(
                 *time.strptime(
-                    url_release_item.get('upload_time', url_release_item['upload_time_iso_8601']),
-                    "%Y-%m-%dT%H:%M:%S"
+                    url_release_item.get(
+                        "upload_time", url_release_item["upload_time_iso_8601"]
+                    ),
+                    "%Y-%m-%dT%H:%M:%S",
                 )[:6]
             ),
-            url_release_item['url'],
-            url_release_item['yanked'],
-            url_release_item['yanked_reason']
+            url_release_item["url"],
+            url_release_item["yanked"],
+            url_release_item["yanked_reason"],
         )
+
 
 @dataclass
 class PackageObject:
@@ -139,13 +146,20 @@ class PackageObject:
 
     @classmethod
     def construct(cls, http_request: Dict[str, Any]):
-        return cls(
-            PackageInfoObject.construct(http_request['info']),
-            http_request['last_serial'],
-            None, #type: ignore # no need to implement this rn, but it should definitely be done later
-            [URLReleaseObject.construct(x) for x in http_request['urls']],
-            http_request['vulnerabilities']
+        j = cls(
+            PackageInfoObject.construct(http_request["info"]),
+            http_request["last_serial"],
+            dict(),
+            [URLReleaseObject.construct(x) for x in http_request["urls"]],
+            http_request["vulnerabilities"],
         )
+        for k, v in http_request["releases"].items():
+            j.releases[k] = URLReleaseObject.construct(v[0])
+        return j
+
+    @property
+    def upload_time(self):
+        return self.releases[self.info.version].upload_time
 
 
 __all__ = ["PackageInfoObject", "URLReleaseObject", "PackageObject"]

@@ -23,13 +23,17 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+
 class PyPIAPIError(Exception):
     pass
+
 
 class PyPIPackageNotFound(PyPIAPIError):
     pass
 
+
 class PyPIPackageVersionNotFound(PyPIAPIError):
     pass
+
 
 __all__ = ["PyPIAPIError", "PyPIPackageNotFound", "PyPIPackageVersionNotFound"]

@@ -16,11 +16,3 @@ def test_successful_release_fetch():
 def test_failed_release_fetch():
     with pytest.raises(PyPIAPIError):
         get_release_full('otlet', '0.1.0')
-
-def test_get_info():
-    res = get_info('otlet')
-    assert isinstance(res, PackageInfoObject)
-
-def test_get_release_info():
-    res = get_release_info('otlet', '0.1.1')
-    assert isinstance(res, PackageInfoObject)

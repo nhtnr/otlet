@@ -85,7 +85,7 @@ def main():
             f"""Info for package {pkg.info.name} v{pkg.info.version}
 
     Summary: {pkg.info.summary}
-    Released: {pkg.upload_time.date()} at {pkg.upload_time.astimezone().timetz()}
+    Release date: {f"{pkg.upload_time.date()} at {pkg.upload_time.astimezone().timetz()}" if pkg.upload_time else "N/A"}
     URL: {pkg.info.package_url}
     Author: {pkg.info.author} <{pkg.info.author_email}>
     License: {pkg.info.license}

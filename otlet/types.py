@@ -154,12 +154,17 @@ class PackageObject:
             http_request["vulnerabilities"],
         )
         for k, v in http_request["releases"].items():
+            if not v:
+                continue
             j.releases[k] = URLReleaseObject.construct(v[0])
         return j
 
     @property
     def upload_time(self):
-        return self.releases[self.info.version].upload_time
+        try:
+            return self.releases[self.info.version].upload_time
+        except KeyError:
+            return None
 
 
 __all__ = ["PackageInfoObject", "URLReleaseObject", "PackageObject"]

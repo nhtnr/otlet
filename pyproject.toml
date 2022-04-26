@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "otlet"
-version = "0.3.0-2"
+version = "0.3.1"
 description = "CLI tool and wrapper for PyPI JSON Web API"
 repository = "https://github.com/nhtnr/otlet"
 license = "MIT"

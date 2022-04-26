@@ -1,12 +1,24 @@
 #!/usr/bin/env python3
 
 import subprocess
+import configparser
+from otlet import __version__
 
 errors = []
 
 print("== BEGIN PRE-COMMIT HOOK ==")
+
+config = configparser.ConfigParser()
+config.read("pyproject.toml")
+__configversion__ = config["tool.poetry"]["version"].replace('"', '')
+
 try:
-    subprocess.check_call(["pytest"])
+    assert __configversion__ == __version__
+except AssertionError:
+    errors.append("\t - version must be identical in otlet/__init__.py and /pyproject.toml")
+
+try:
+    if not errors: subprocess.check_call(["pytest"])
 except subprocess.CalledProcessError:
     errors.append("\t - one or more pytest cases failed, please check output above and try again")
 print("== END PRE-COMMIT HOOK ==")

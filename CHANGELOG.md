@@ -1,4 +1,8 @@
-# 0.3.0 ( current version )
+# 0.3.1
+
+- fix bug where packages with blank releases would raise an error
+
+# 0.3.0
 
 - implement PackageObject.releases
 - add util.py

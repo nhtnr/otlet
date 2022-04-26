@@ -1,3 +1,8 @@
+# 0.4.0
+
+- add --releases option
+    - returns list of all available release versions
+
 # 0.3.1
 
 - fix bug where packages with blank releases would raise an error

@@ -45,6 +45,11 @@ def init_args():
         help="The package to search for. (version is optional)",
     )
     parser.add_argument(
+        "--releases",
+        help="print list of releases for package",
+        action="store_true"
+    )
+    parser.add_argument(
         "-v",
         "--version",
         help="print version information and exit",
@@ -68,9 +73,18 @@ def init_args():
 
     return args
 
+def fetch_releases(package: str):
+    pkg = get_full(package)
+    for rel in pkg.releases:
+        print(rel)
+
+    raise SystemExit(0)
 
 def main():
     args = init_args()
+    if args.releases:
+        fetch_releases(args.package[0])
+
     try:
         if len(args.package) > 1:
             pkg = get_release_full(args.package[0], args.package[1])

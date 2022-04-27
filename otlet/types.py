@@ -234,7 +234,7 @@ class URLReleaseObject:
     upload_time: datetime.datetime
     url: str
     yanked: bool
-    yanked_reason: str
+    yanked_reason: Optional[str]
 
     @classmethod
     def construct(cls, url_release_item: Dict[str, Any]):

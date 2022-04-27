@@ -11,7 +11,9 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
 import re
-
+import os
+import sys
+sys.path.insert(0, os.path.abspath(".."))
 
 # -- Project information -----------------------------------------------------
 
@@ -32,6 +34,8 @@ with open("../otlet/__init__.py") as f:
 extensions = [
     'sphinx.ext.autodoc'
 ]
+autodoc_member_order = "bysource"
+autodoc_typehints = "none"
 
 # Add any paths that contain templates here, relative to this directory.
 # templates_path = ['_templates']

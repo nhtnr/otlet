@@ -24,11 +24,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 import textwrap
-import time
 from argparse import ArgumentParser
-from . import __version__
-from . import *
-from .exceptions import PyPIAPIError
+from . import __version__, api, exceptions
 
 
 def init_args():
@@ -45,9 +42,7 @@ def init_args():
         help="The package to search for. (version is optional)",
     )
     parser.add_argument(
-        "--releases",
-        help="print list of releases for package",
-        action="store_true"
+        "--releases", help="print list of releases for package", action="store_true"
     )
     parser.add_argument(
         "-v",
@@ -73,12 +68,14 @@ def init_args():
 
     return args
 
+
 def fetch_releases(package: str):
-    pkg = get_full(package)
+    pkg = api.get_full(package)
     for rel in pkg.releases:
         print(rel)
 
     raise SystemExit(0)
+
 
 def main():
     args = init_args()
@@ -87,10 +84,10 @@ def main():
 
     try:
         if len(args.package) > 1:
-            pkg = get_release_full(args.package[0], args.package[1])
+            pkg = api.get_release_full(args.package[0], args.package[1])
         else:
-            pkg = get_full(args.package[0])
-    except PyPIAPIError as err:
+            pkg = api.get_full(args.package[0])
+    except exceptions.PyPIAPIError as err:
         raise SystemExit(f"{args.package[0]}: " + err.__str__())
 
     indent_chars = "\n\t\t"

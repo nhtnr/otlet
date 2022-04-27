@@ -2,6 +2,8 @@
 
 - add --releases option
     - returns list of all available release versions
+- add documentation
+- rename otlet.http to otlet.api
 
 # 0.3.1
 

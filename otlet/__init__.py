@@ -24,8 +24,8 @@ OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from .types import *
-from .http import *
+from .api import *
 from .exceptions import *
 
-__version__ = "0.4.0"
+__version__ = "0.4.0b1"
 __license__ = "MIT"

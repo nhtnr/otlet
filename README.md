@@ -1,5 +1,5 @@
 <div align="center">
-    <img src=".github/otlet.png" alt="otlet readme image"><br>
+    <img src="https://commedesgarcons.s-ul.eu/Ht5pZjlN" alt="otlet readme image"><br>
     Zero-dependency CLI tool and wrapper for the PyPI JSON Web API.
 </div>
 

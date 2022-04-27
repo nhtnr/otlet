@@ -104,7 +104,7 @@ class PackageInfoObject:
     :type requires_python: Optional[str]
 
     :param summary: Short summary of the package's function
-    :type summary: str
+    :type summary: Optional[str]
 
     :param version: Package version (current stable version, if not specified)
     :type version: str
@@ -113,7 +113,7 @@ class PackageInfoObject:
     :type yanked: bool
 
     :param yanked_reason: If this version has been yanked, reason as to why
-    :type yanked_reason: Optional[str]
+    :type yanked_reason: str
     """
 
     author: str
@@ -138,7 +138,7 @@ class PackageInfoObject:
     release_url: str
     requires_dist: Optional[List[str]]
     requires_python: Optional[str]
-    summary: str
+    summary: Optional[str]
     version: str
     yanked: bool
     yanked_reason: Optional[str]
@@ -148,32 +148,32 @@ class PackageInfoObject:
         return cls(
             pkginfo["author"],
             pkginfo["author_email"],
-            pkginfo["bugtrack_url"],
+            pkginfo["bugtrack_url"] or None,
             pkginfo["classifiers"],
-            pkginfo["description"],
-            pkginfo["description_content_type"],
-            pkginfo["docs_url"],
-            pkginfo["download_url"],
+            pkginfo["description"] or None,
+            pkginfo["description_content_type"] or None,
+            pkginfo["docs_url"] or None,
+            pkginfo["download_url"] or None,
             SimpleNamespace(**pkginfo["downloads"]),
-            pkginfo["home_page"],
-            pkginfo["keywords"],
-            pkginfo["license"],
-            pkginfo["maintainer"],
-            pkginfo["maintainer_email"],
+            pkginfo["home_page"] or None,
+            pkginfo["keywords"] or None,
+            pkginfo["license"] or None,
+            pkginfo["maintainer"] or None,
+            pkginfo["maintainer_email"] or None,
             pkginfo["name"],
             pkginfo["package_url"],
-            pkginfo["platform"],
+            pkginfo["platform"] or None,
             pkginfo["project_url"],
             SimpleNamespace(**pkginfo["project_urls"])
             if pkginfo["project_urls"]
             else None,
             pkginfo["release_url"],
-            pkginfo["requires_dist"],
-            pkginfo["requires_python"],
-            pkginfo["summary"],
+            pkginfo["requires_dist"] or None,
+            pkginfo["requires_python"] or None,
+            pkginfo["summary"] or None,
             pkginfo["version"],
             pkginfo["yanked"],
-            pkginfo["yanked_reason"],
+            pkginfo["yanked_reason"] or None,
         )
 
 
@@ -234,7 +234,7 @@ class URLReleaseObject:
     upload_time: datetime.datetime
     url: str
     yanked: bool
-    yanked_reason: Optional[str]
+    yanked_reason: str
 
     @classmethod
     def construct(cls, url_release_item: Dict[str, Any]):
@@ -258,7 +258,50 @@ class URLReleaseObject:
             ),
             url_release_item["url"],
             url_release_item["yanked"],
-            url_release_item["yanked_reason"],
+            url_release_item["yanked_reason"] or None,
+        )
+
+
+@dataclass
+class PackageVulnerabilitiesObject:
+    """
+    Contains information about applicable package vulnerabilities, mainly sourced from 'https://osv.dev/'
+
+    :param aliases: Alias name(s) for this vulnerability, usually a 'CVE-ID'
+    :type aliases: List[str]
+
+    :param details: Details about the vulnerability
+    :type details: str
+
+    :param fixed_in: Version(s) that the vulnerability was patched in
+    :type fixed_in: List[str]
+
+    :param id: 'PYSEC-ID' for this vulnerability
+    :type id: str
+
+    :param link: Link to web page where this information was sourced from, usually an 'https://osv.dev/' link
+    :type link: str
+
+    :param source: Where this vulnerability information was sourced from, usually 'osv'
+    :type source: str
+    """
+
+    aliases: List[str]
+    details: str
+    fixed_in: List[str]
+    id: str
+    link: str
+    source: str
+
+    @classmethod
+    def construct(cls, vuln_dict: Dict[str, Any]):
+        return cls(
+            vuln_dict["aliases"],
+            vuln_dict["details"],
+            vuln_dict["fixed_in"],
+            vuln_dict["id"],
+            vuln_dict["link"],
+            vuln_dict["source"],
         )
 
 
@@ -279,15 +322,15 @@ class PackageObject:
     :param urls: List of package releases for the given version
     :type urls: List[:class:`~URLReleaseObject`]
 
-    :param vulnerabilities: Object containing vulnerability details for the given version, if applicable.
-    :type vulnerabilities: Optional[Dict]
+    :param vulnerabilities: List of objects containing vulnerability details for the given version, if applicable.
+    :type vulnerabilities: Optional[List[:class:`~PackageVulnerabilitiesObject`]]
     """
 
     info: PackageInfoObject
     last_serial: int
     releases: Dict[str, URLReleaseObject]
     urls: List[URLReleaseObject]
-    vulnerabilities: Optional[Dict]
+    vulnerabilities: Optional[List[PackageVulnerabilitiesObject]]
 
     @classmethod
     def construct(cls, http_request: Dict[str, Any]):
@@ -295,8 +338,12 @@ class PackageObject:
             PackageInfoObject.construct(http_request["info"]),
             http_request["last_serial"],
             dict(),
-            [URLReleaseObject.construct(x) for x in http_request["urls"]],
-            None,
+            [URLReleaseObject.construct(_) for _ in http_request["urls"]],
+            [
+                PackageVulnerabilitiesObject.construct(_)
+                for _ in http_request["vulnerabilities"]
+            ]
+            or None,
         )
         for k, v in http_request["releases"].items():
             if not v:
@@ -305,14 +352,22 @@ class PackageObject:
         return j
 
     @property
-    def name(self):
+    def canonicalized_name(self):
         return (
             re.compile(r"[-_.]+").sub("-", self.info.name).lower()
-        )  # canonicalize name, stolen from packaging module
+        )  # stolen from packaging module
+
+    @property
+    def name(self):
+        return self.info.name
 
     @property
     def version(self):
         return self.info.version
+
+    @property
+    def release_name(self):
+        return f"{self.name} v{self.version}"
 
     @property
     def upload_time(self):
@@ -322,4 +377,9 @@ class PackageObject:
             return None
 
 
-__all__ = ["PackageInfoObject", "URLReleaseObject", "PackageObject"]
+__all__ = [
+    "PackageInfoObject",
+    "URLReleaseObject",
+    "PackageObject",
+    "PackageVulnerabilitiesObject",
+]

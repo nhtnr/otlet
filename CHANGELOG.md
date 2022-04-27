@@ -1,9 +1,17 @@
 # 0.4.0
 
-- add --releases option
-    - returns list of all available release versions
-- add documentation
-- rename otlet.http to otlet.api
+- [API] add PackageVulnerabilitiesObject
+- [CLI] add vulnerability warning if any are present for a given release
+- [CLI] add --vulnerabilities option
+        - returns paginated list of vulnerabilities, if any, for a given release
+- [CLI] add --releases option
+        - returns list of all available release versions
+- [API] add documentation
+- [API/CLI] rename modules
+        - otlet.http -> otlet.api
+        - otlet.otlet -> otlet.cli
+- [API] fix Optional class params to store NoneType if blank str
+
 
 # 0.3.1
 

@@ -1,5 +1,5 @@
 """
-otlet.otlet - otlet cli tool
+otlet.cli - otlet command line tool
 CLI tool and wrapper for PyPI JSON Web API
 
 Copyright (c) 2022 Noah Tanner
@@ -23,6 +23,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
+import os
+import signal
 import textwrap
 from argparse import ArgumentParser
 from . import __version__, api, exceptions
@@ -43,6 +45,11 @@ def init_args():
     )
     parser.add_argument(
         "--releases", help="print list of releases for package", action="store_true"
+    )
+    parser.add_argument(
+        "--vulnerabilities",
+        help="print information about known vulnerabilities for package release version",
+        action="store_true",
     )
     parser.add_argument(
         "-v",
@@ -69,7 +76,7 @@ def init_args():
     return args
 
 
-def fetch_releases(package: str):
+def print_releases(package: str):
     pkg = api.get_full(package)
     for rel in pkg.releases:
         print(rel)
@@ -77,10 +84,55 @@ def fetch_releases(package: str):
     raise SystemExit(0)
 
 
+def print_vulns(package: str, version: str):
+    pkg = api.get_release_full(package, version)
+
+    if pkg.vulnerabilities is None:
+        print("No vulnerabilities found for this release! :)")
+        raise SystemExit(0)
+
+    os.system("clear" if os.name != "nt" else "cls")
+    print(
+        "==",
+        len(pkg.vulnerabilities),
+        "security vulnerabilities found for",
+        pkg.release_name,
+        "==\n",
+    )
+
+    for vuln in pkg.vulnerabilities:
+        print(
+            pkg.vulnerabilities.index(vuln) + 1, "/", len(pkg.vulnerabilities), sep=""
+        )
+        msg = ""
+        msg += f"\u001b[1m{vuln.id} ({', '.join(vuln.aliases).strip(', ')})\u001b[0m\n"
+        msg += textwrap.TextWrapper(initial_indent="\t", subsequent_indent="\t").fill(
+            vuln.details
+        )
+        msg += f"\n\u001b[1mFixed in version(s):\u001b[0m '{', '.join(vuln.fixed_in).strip(', ')}'\n"
+        msg += f"(See more: '{vuln.link}')\n"
+        print(msg)
+        input("== Press ENTER for next page ==")
+        os.system("clear" if os.name != "nt" else "cls")
+
+    raise SystemExit(0)
+
+
 def main():
+    signal.signal(
+        signal.SIGINT, lambda *_: (_ for _ in ()).throw(SystemExit(0))
+    )  # no yucky exception on KeyboardInterrupt (^C)
     args = init_args()
+
     if args.releases:
-        fetch_releases(args.package[0])
+        print_releases(args.package[0])
+
+    if args.vulnerabilities and len(args.package) > 1:
+        print_vulns(args.package[0], args.package[1])
+    elif args.vulnerabilities and not len(args.package) > 1:
+        raise SystemExit(
+            "Please supply both a package AND a package version, i.e. 'otlet django 3.1.0 --vulnerabilities'"
+        )
 
     try:
         if len(args.package) > 1:
@@ -91,9 +143,8 @@ def main():
         raise SystemExit(f"{args.package[0]}: " + err.__str__())
 
     indent_chars = "\n\t\t"
-    print(
-        textwrap.dedent(
-            f"""Info for package {pkg.info.name} v{pkg.info.version}
+    msg = textwrap.dedent(
+        f"""Info for package {pkg.name} v{pkg.version}
 
     Summary: {pkg.info.summary}
     Release date: {f"{pkg.upload_time.date()} at {pkg.upload_time.astimezone().timetz()}" if pkg.upload_time else "N/A"}
@@ -102,8 +153,11 @@ def main():
     License: {pkg.info.license}
     Python Version(s): {pkg.info.requires_python if pkg.info.requires_python else "Not Defined"}
     Dependencies: ({len(pkg.info.requires_dist) if pkg.info.requires_dist else 0}) \n\t\t{indent_chars.join(pkg.info.requires_dist) if pkg.info.requires_dist else ""}
-    {f"==NOTE== This version has been yanked from PyPI. (Reason: {pkg.info.yanked_reason})" if pkg.info.yanked else ""}"""
-        )
+    """
     )
-
+    if pkg.vulnerabilities:
+        msg += "\n==WARNING==\nThis version has known security vulnerabilities, use the '--vulnerabilities' flag to view them\n"
+    if pkg.info.yanked:
+        msg += f"\n==NOTE==\nThis version has been yanked from PyPI.\n\t Reason: '{pkg.info.yanked_reason}'\n"
+    print(msg)
     raise SystemExit(0)

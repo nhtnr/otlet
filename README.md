@@ -1,6 +1,6 @@
 <div align="center">
     <img src=".github/otlet.png" alt="otlet readme image"><br>
-    CLI tool and wrapper for the PyPI JSON Web API.
+    Zero-dependency CLI tool and wrapper for the PyPI JSON Web API.
 </div>
 
 [![license-mit](https://img.shields.io/github/license/nhtnr/otlet)](https://github.com/nhtnr/otlet/blob/main/LICENSE)

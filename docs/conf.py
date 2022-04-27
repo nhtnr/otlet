@@ -10,7 +10,7 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-import otlet
+import re
 
 
 # -- Project information -----------------------------------------------------
@@ -20,7 +20,8 @@ copyright = '2022, nhtnr'
 author = 'nhtnr'
 
 # The full version, including alpha/beta/rc tags
-release = otlet.__version__
+with open("../otlet/__init__.py") as f:
+    release = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
 
 
 # -- General configuration ---------------------------------------------------

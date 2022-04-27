@@ -284,6 +284,8 @@ class PackageVulnerabilitiesObject:
 
     :param source: Where this vulnerability information was sourced from, usually 'osv'
     :type source: str
+
+    .. versionadded:: 0.4.0
     """
 
     aliases: List[str]

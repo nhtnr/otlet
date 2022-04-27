@@ -2,6 +2,9 @@
 otlet.api
 ======================
 Functions that call the PyPI Web API.
+
+.. versionchanged:: 0.4.0
+    Changed module name from otlet.http to otlet.api
 """
 #
 # Copyright (c) 2022 Noah Tanner

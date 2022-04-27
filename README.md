@@ -3,6 +3,7 @@
     Zero-dependency CLI tool and wrapper for the PyPI JSON Web API.
 </div>
 
+[![Documentation Status](https://readthedocs.org/projects/otlet/badge/?version=latest)](https://otlet.readthedocs.io/en/latest/?badge=latest)
 [![license-mit](https://img.shields.io/github/license/nhtnr/otlet)](https://github.com/nhtnr/otlet/blob/main/LICENSE)
 [![build-workflow](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml/badge.svg?branch=main&event=push)](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml)
 [![github-issues](https://img.shields.io/github/issues/nhtnr/otlet)](https://github.com/astro-devel/nhtnr/otlet)

@@ -43,7 +43,7 @@ class PackageInfoObject:
     :param author_email: Email of the package author
     :type author_email: str
 
-    :param bugtrack_url: URL for the package's bug tracker, if available
+    :param bugtrack_url: Legacy attribute (deprecated) (Use project_urls.Tracker instead)
     :type bugtrack_url: Optional[str]
 
     :param classifiers: PEP 301 package classifiers
@@ -55,7 +55,7 @@ class PackageInfoObject:
     :param description_content_type: Type format for package description, if applicable
     :type description_content_type: Optional[str]
 
-    :param docs_url: URL for package's documentation, if available
+    :param docs_url: Legacy attribute (deprecated) (Use project_urls.Documentation instead)
     :type docs_url: Optional[str]
 
     :param download_url: Legacy attribute (deprecated)
@@ -328,6 +328,7 @@ class PackageObject:
     :type vulnerabilities: Optional[List[:class:`~PackageVulnerabilitiesObject`]]
     """
 
+    _data: Dict[str, Any]
     info: PackageInfoObject
     last_serial: int
     releases: Dict[str, URLReleaseObject]
@@ -337,6 +338,7 @@ class PackageObject:
     @classmethod
     def construct(cls, http_request: Dict[str, Any]):
         j = cls(
+            http_request,
             PackageInfoObject.construct(http_request["info"]),
             http_request["last_serial"],
             dict(),

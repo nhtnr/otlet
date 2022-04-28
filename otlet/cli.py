@@ -47,6 +47,11 @@ def init_args():
         "--releases", help="print list of releases for package", action="store_true"
     )
     parser.add_argument(
+        "--urls",
+        help="print list of all relevant URLs for package",
+        action="store_true",
+    )
+    parser.add_argument(
         "--vulnerabilities",
         help="print information about known vulnerabilities for package release version",
         action="store_true",
@@ -80,6 +85,14 @@ def print_releases(package: str):
     pkg = api.get_full(package)
     for rel in pkg.releases:
         print(rel)
+
+    raise SystemExit(0)
+
+
+def print_urls(package: str):
+    pkg = api.get_full(package)
+    for _type, url in pkg.info.project_urls.__dict__.items():
+        print(f"{_type}: {url}")
 
     raise SystemExit(0)
 
@@ -126,6 +139,8 @@ def main():
 
     if args.releases:
         print_releases(args.package[0])
+    if args.urls:
+        print_urls(args.package[0])
 
     if args.vulnerabilities and len(args.package) > 1:
         print_vulns(args.package[0], args.package[1])
@@ -144,20 +159,23 @@ def main():
 
     indent_chars = "\n\t\t"
     msg = textwrap.dedent(
-        f"""Info for package {pkg.name} v{pkg.version}
+        f"""Info for package {pkg.release_name}
 
     Summary: {pkg.info.summary}
     Release date: {f"{pkg.upload_time.date()} at {pkg.upload_time.astimezone().timetz()}" if pkg.upload_time else "N/A"}
-    URL: {pkg.info.package_url}
+    Homepage: {pkg.info.home_page}
+    PyPI URL: {pkg.info.package_url}
+    Documentation: {pkg.info.project_urls.Documentation if hasattr(pkg.info.project_urls, 'Documentation') else "N/A"}
     Author: {pkg.info.author} <{pkg.info.author_email}>
+    Maintainer: {pkg.info.maintainer or pkg.info.author} <{pkg.info.maintainer_email or pkg.info.author_email}>
     License: {pkg.info.license}
-    Python Version(s): {pkg.info.requires_python if pkg.info.requires_python else "Not Defined"}
+    Python Version(s): {pkg.info.requires_python or "Not Specified"}
     Dependencies: ({len(pkg.info.requires_dist) if pkg.info.requires_dist else 0}) \n\t\t{indent_chars.join(pkg.info.requires_dist) if pkg.info.requires_dist else ""}
     """
     )
     if pkg.vulnerabilities:
-        msg += "\n==WARNING==\nThis version has known security vulnerabilities, use the '--vulnerabilities' flag to view them\n"
+        msg += f"\u001b[1m\u001b[31m\n== WARNING ==\u001b[0m\nThis version has \u001b[1m\u001b[31m{len(pkg.vulnerabilities)}\u001b[0m known security vulnerabilities, use the '--vulnerabilities' flag to view them\n"
     if pkg.info.yanked:
-        msg += f"\n==NOTE==\nThis version has been yanked from PyPI.\n\t Reason: '{pkg.info.yanked_reason}'\n"
+        msg += f"\u001b[1m\u001b[33m\n== NOTE ==\u001b[0m\nThis version has been yanked from PyPI.\n\t Reason: '{pkg.info.yanked_reason}'\n"
     print(msg)
     raise SystemExit(0)

@@ -1,3 +1,14 @@
+# 0.5.0
+
+- [CLI] add some color and bold text to warning/note labels
+- [CLI] add items to CLI output
+        - Documentation URL
+        - Homepage URL
+        - Maintainer
+- [CLI] add --urls option
+        - returns list of relevant URLs for given package
+- [API] docs changes 
+
 # 0.4.0
 
 - [API] add PackageVulnerabilitiesObject

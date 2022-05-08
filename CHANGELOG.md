@@ -7,7 +7,11 @@
         - Maintainer
 - [CLI] add --urls option
         - returns list of relevant URLs for given package
-- [API] docs changes 
+- [CLI] add extra info to --releases 
+- [CLI] add '-lt' and '-gt' options for use with --releases
+- [API] change PackageObject.info.version from `str` to `packaging.version.Version`
+- [API] change PackageObject.releases from `Dict[str, URLReleaseObject]` to `Dict[packaging.versionVersion, URLReleaseObject]`
+- [API] docs changes
 
 # 0.4.0
 

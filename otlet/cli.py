@@ -47,6 +47,20 @@ def init_args():
         "--releases", help="print list of releases for package", action="store_true"
     )
     parser.add_argument(
+        "-gt", 
+        metavar=("VERSION"),
+        help="return releases past given version (for use with '--releases')", 
+        nargs="?", 
+        action="store"
+    )
+    parser.add_argument(
+        "-lt", 
+        metavar=("VERSION"),
+        help="return releases before given version (for use with '--releases')", 
+        nargs="?", 
+        action="store"
+    )
+    parser.add_argument(
         "--urls",
         help="print list of all relevant URLs for package",
         action="store_true",
@@ -81,10 +95,31 @@ def init_args():
     return args
 
 
-def print_releases(package: str):
+def print_releases(package: str, version_string: str = None):
+    from packaging.version import Version
+
+    version_to_beat = Version("0.0.0.dev0") # earliest version for Version __gt__/__lt__ methods
+    method = "gt"
+    if version_string.startswith(">"):
+        version_to_beat = Version(version_string[1:])
+    if version_string.startswith("<"):
+        method = "lt"
+        version_to_beat = Version(version_string[1:])
+
     pkg = api.get_full(package)
-    for rel in pkg.releases:
-        print(rel)
+    for rel, obj in pkg.releases.items():
+        if method == "gt":
+            if rel < version_to_beat:
+                continue
+        else:
+            if rel > version_to_beat:
+                continue
+
+        text = f"({obj.upload_time.date()}) {rel}"
+        if obj.yanked:
+            text = "\u001b[9m\u001b[1m" + text + "\u001b[0m"
+            text += "\u001b[1m\u001b[33m (yanked)\u001b[0m"
+        print(text)
 
     raise SystemExit(0)
 
@@ -138,7 +173,12 @@ def main():
     args = init_args()
 
     if args.releases:
-        print_releases(args.package[0])
+        if args.gt:
+            print_releases(args.package[0], ">" + args.gt)
+        elif args.lt:
+            print_releases(args.package[0], "<" + args.lt)
+        else:
+            print_releases(args.package[0])
     if args.urls:
         print_urls(args.package[0])
 

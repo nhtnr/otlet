@@ -27,5 +27,5 @@ from .types import *
 from .api import *
 from .exceptions import *
 
-__version__ = "0.5.0b1"
+__version__ = "0.5.0"
 __license__ = "MIT"

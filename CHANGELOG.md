@@ -1,3 +1,8 @@
+# 0.5.1
+
+- [API] add packaging.version submodule into project (located at: 'otlet/packaging/version')
+- [API] docs changes
+
 # 0.5.0
 
 - [CLI] add some color and bold text to warning/note labels

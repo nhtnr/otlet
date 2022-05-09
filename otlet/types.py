@@ -107,7 +107,7 @@ class PackageInfoObject:
     :type summary: Optional[str]
 
     :param version: Package version (current stable version, if not specified)
-    :type version: `Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`]`
+    :type version: Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`]
 
     :param yanked: Whether or not this version has been yanked
     :type yanked: bool
@@ -319,7 +319,7 @@ class PackageObject:
     :type last_serial: int
 
     :param releases: Dictionary containing all release objects for a given package
-    :type releases: Dict[`Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`]`, :class:`~URLReleaseObject`]
+    :type releases: Dict[Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`], :class:`~URLReleaseObject`]
 
     :param urls: List of package releases for the given version
     :type urls: List[:class:`~URLReleaseObject`]

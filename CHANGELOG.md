@@ -9,8 +9,8 @@
         - returns list of relevant URLs for given package
 - [CLI] add extra info to --releases 
 - [CLI] add '-lt' and '-gt' options for use with --releases
-- [API] change PackageObject.info.version from `str` to `packaging.version.Version`
-- [API] change PackageObject.releases from `Dict[str, URLReleaseObject]` to `Dict[packaging.versionVersion, URLReleaseObject]`
+- [API] change PackageObject.info.version from `str` to `Union[packaging.version.Version, packaging.version.LegacyVersion]`
+- [API] change PackageObject.releases from `Dict[str, URLReleaseObject]` to `Dict[Union[packaging.version.Version, packaging.version.LegacyVersion], URLReleaseObject]`
 - [API] docs changes
 
 # 0.4.0

@@ -27,10 +27,10 @@ Classes used by otlet for storing data returned from PyPI Web API.
 import re
 import time
 import datetime
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Union, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
-from packaging.version import Version
+from packaging.version import Version, LegacyVersion, parse
 
 @dataclass
 class PackageInfoObject:
@@ -107,7 +107,7 @@ class PackageInfoObject:
     :type summary: Optional[str]
 
     :param version: Package version (current stable version, if not specified)
-    :type version: :class:`packaging.version.Version`
+    :type version: `Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`]`
 
     :param yanked: Whether or not this version has been yanked
     :type yanked: bool
@@ -139,7 +139,7 @@ class PackageInfoObject:
     requires_dist: Optional[List[str]]
     requires_python: Optional[str]
     summary: Optional[str]
-    version: Version
+    version: Union[Version, LegacyVersion]
     yanked: bool
     yanked_reason: Optional[str]
 
@@ -171,7 +171,7 @@ class PackageInfoObject:
             pkginfo["requires_dist"] or None,
             pkginfo["requires_python"] or None,
             pkginfo["summary"] or None,
-            Version(pkginfo["version"]),
+            parse(pkginfo["version"]),
             pkginfo["yanked"],
             pkginfo["yanked_reason"] or None,
         )
@@ -319,7 +319,7 @@ class PackageObject:
     :type last_serial: int
 
     :param releases: Dictionary containing all release objects for a given package
-    :type releases: Dict[:class:`packaging.version.Version`, :class:`~URLReleaseObject`]
+    :type releases: Dict[`Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`]`, :class:`~URLReleaseObject`]
 
     :param urls: List of package releases for the given version
     :type urls: List[:class:`~URLReleaseObject`]
@@ -331,7 +331,7 @@ class PackageObject:
     _data: Dict[str, Any]
     info: PackageInfoObject
     last_serial: int
-    releases: Dict[Version, URLReleaseObject]
+    releases: Dict[Union[Version, LegacyVersion], URLReleaseObject]
     urls: List[URLReleaseObject]
     vulnerabilities: Optional[List[PackageVulnerabilitiesObject]]
 
@@ -352,7 +352,7 @@ class PackageObject:
         for k, v in http_request["releases"].items():
             if not v:
                 continue
-            j.releases[Version(k)] = URLReleaseObject.construct(v[0])
+            j.releases[parse(k)] = URLReleaseObject.construct(v[0])
         return j
 
     @property

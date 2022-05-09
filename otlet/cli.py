@@ -100,11 +100,12 @@ def print_releases(package: str, version_string: str = None):
 
     version_to_beat = Version("0.0.0.dev0") # earliest version for Version __gt__/__lt__ methods
     method = "gt"
-    if version_string.startswith(">"):
-        version_to_beat = Version(version_string[1:])
-    if version_string.startswith("<"):
-        method = "lt"
-        version_to_beat = Version(version_string[1:])
+    if version_string:
+        if version_string.startswith(">"):
+            version_to_beat = Version(version_string[1:])
+        if version_string.startswith("<"):
+            method = "lt"
+            version_to_beat = Version(version_string[1:])
 
     pkg = api.get_full(package)
     for rel, obj in pkg.releases.items():

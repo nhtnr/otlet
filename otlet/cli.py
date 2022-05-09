@@ -97,7 +97,7 @@ def init_args():
 
 
 def print_releases(package: str, version_string: str = None):
-    from packaging.version import Version
+    from .packaging.version import Version
 
     version_to_beat = Version("0.0.0.dev0") # earliest version for Version __gt__/__lt__ methods
     method = "gt"

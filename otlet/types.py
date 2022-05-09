@@ -30,7 +30,7 @@ import datetime
 from typing import Any, Optional, Union, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
-from packaging.version import Version, LegacyVersion, parse
+from .packaging.version import Version, LegacyVersion, parse
 
 @dataclass
 class PackageInfoObject:

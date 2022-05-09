@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "otlet"
-version = "0.5.1"
+version = "0.6.0"
 description = "CLI tool and wrapper for PyPI JSON Web API"
 readme = "README.md"
 documentation = "https://otlet.readthedocs.io/en/latest/"

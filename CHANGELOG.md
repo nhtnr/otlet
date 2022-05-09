@@ -1,3 +1,9 @@
+# 0.6.0
+
+- [API] remove DeprecationWarning from otlet.packaging.version.LegacyVersion
+        - since this is an indexing program, we need to retain LegacyVersion for properly searching/displaying
+          package versions that do not conform to the PEP 440 standard
+
 # 0.5.1
 
 - [API] add packaging.version submodule into project (located at: 'otlet/packaging/version')

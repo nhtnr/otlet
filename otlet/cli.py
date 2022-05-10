@@ -24,15 +24,16 @@ CLI tool for returning PyPI package information, using the otlet wrapper
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
+import argparse
 import os
 import signal
 import textwrap
-from argparse import ArgumentParser
+from typing import Optional
 from . import __version__, api, exceptions
 
 
 def init_args():
-    parser = ArgumentParser(
+    parser = argparse.ArgumentParser(
         prog="otlet",
         epilog="(c) 2022-present Noah Tanner, released under the terms of the MIT License",
     )
@@ -96,26 +97,21 @@ def init_args():
     return args
 
 
-def print_releases(package: str, version_string: str = None):
-    from .packaging.version import Version
+def print_releases(package: str, args: Optional[argparse.Namespace] = None):
+    from .packaging.version import etc, Version
 
-    version_to_beat = Version("0.0.0.dev0") # earliest version for Version __gt__/__lt__ methods
-    method = "gt"
-    if version_string:
-        if version_string.startswith(">"):
-            version_to_beat = Version(version_string[1:])
-        if version_string.startswith("<"):
-            method = "lt"
-            version_to_beat = Version(version_string[1:])
+    _top = etc.TopVersion()
+    _bottom = etc.BottomVersion()
+
+    if args and args.gt:
+        _bottom = Version(args.gt)
+    if args and args.lt:
+        _top = Version(args.lt)
 
     pkg = api.get_full(package)
     for rel, obj in pkg.releases.items():
-        if method == "gt":
-            if rel < version_to_beat:
-                continue
-        else:
-            if rel > version_to_beat:
-                continue
+        if _top < rel or _bottom > rel:
+            continue
 
         text = f"({obj.upload_time.date()}) {rel}"
         if obj.yanked:
@@ -175,10 +171,8 @@ def main():
     args = init_args()
 
     if args.releases:
-        if args.gt:
-            print_releases(args.package[0], ">" + args.gt)
-        elif args.lt:
-            print_releases(args.package[0], "<" + args.lt)
+        if args.gt or args.lt:
+            print_releases(args.package[0], args)
         else:
             print_releases(args.package[0])
     if args.urls:

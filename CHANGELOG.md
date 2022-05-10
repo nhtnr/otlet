@@ -1,8 +1,8 @@
 # 0.6.0
 
 - [API] remove DeprecationWarning from otlet.packaging.version.LegacyVersion
-        - since this is an indexing program, we need to retain LegacyVersion for properly searching/displaying
-          package versions that do not conform to the PEP 440 standard
+        - since this is an indexing program, we need to retain LegacyVersion for properly searching/displaying package versions that do not conform to the PEP 440 standard
+- [CLI] now able to use -gt and -lt args together (i.e. 'otlet otlet --releases -gt 0.2 -lt 0.4')
 
 # 0.5.1
 

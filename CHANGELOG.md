@@ -2,7 +2,14 @@
 
 - [API] remove DeprecationWarning from otlet.packaging.version.LegacyVersion
         - since this is an indexing program, we need to retain LegacyVersion for properly searching/displaying package versions that do not conform to the PEP 440 standard
-- [CLI] now able to use -gt and -lt args together (i.e. 'otlet otlet --releases -gt 0.2 -lt 0.4')
+- [API] add otlet.packaging.version.etc for extra version-related operations
+- [CLI] remove -gt and -lt
+- [CLI] convert '--releases' to subcommand 'otlet releases':
+        - add '--before-date' ('-bd'), '--after-date' ('-ad'), '--before-version' ('-bv'), and '--after-version' ('-av')
+- [CLI] move CLI to dedicated submodule directory
+        - move printers into dedicated module (otlet.cli.util)
+        - seperate argparser into dedicated module (otlet.cli.options)
+- [CLI] spice up version command
 
 # 0.5.1
 

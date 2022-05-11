@@ -1,4 +1,5 @@
 from typing import Dict, Any
+from .actions import OtletVersionAction
 
 PACKAGE_ARGUMENT: Dict[str, Any] = {
     "opts": [],
@@ -31,7 +32,7 @@ ARGUMENT_LIST: Dict[str, Any] = {
     "version": {
         "opts": ["-v", "--version"],
         "help": "print version and exit",
-        "action": "store_true",
+        "action": OtletVersionAction,
     },
 }
 

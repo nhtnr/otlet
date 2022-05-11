@@ -42,6 +42,10 @@ def print_releases(args: Optional[argparse.Namespace] = None):
 
 def print_urls(package: str):
     pkg = api.get_package(package)
+    if pkg.info.project_urls is None:
+        print(f"No URLs available for {pkg.release_name}")
+        raise SystemExit(0)
+
     for _type, url in pkg.info.project_urls.__dict__.items():
         print(f"{_type}: {url}")
 

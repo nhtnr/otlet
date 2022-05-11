@@ -31,13 +31,19 @@ class PyPIAPIError(Exception):
 
 
 class PyPIPackageNotFound(PyPIAPIError):
-    """Error raised when a specified package WAS NOT found in the package index."""
+    """Raised when a specified package WAS NOT found in the package index."""
     pass
 
 
 class PyPIPackageVersionNotFound(PyPIAPIError):
-    """Error raised when a specified package WAS found, but the specified version WAS NOT."""
+    """Raised when a specified package WAS found, but the specified version WAS NOT."""
     pass
 
+class HashDigestMatchError(Exception):
+    """Raised when two hash digests do not match."""
+    def __init__(self, cmp, against, *args: object,) -> None:
+        super().__init__(*args)
+        self.cmp = cmp # hash that was being check
+        self.against = against # hash that 'cmp' was being compared against
 
-__all__ = ["PyPIAPIError", "PyPIPackageNotFound", "PyPIPackageVersionNotFound"]
+__all__ = ["PyPIAPIError", "PyPIPackageNotFound", "PyPIPackageVersionNotFound", "HashDigestMatchError"]

@@ -32,8 +32,9 @@ import json
 import http.client
 from urllib.request import urlopen as request_url
 from urllib.error import HTTPError
-from typing import Optional, Union
-from io import BytesIO
+from typing import Optional, Tuple, Union
+from io import BufferedWriter
+from .exceptions import HashDigestMatchError
 
 from .util import deprecated
 from .exceptions import *
@@ -41,7 +42,7 @@ from .types import *
 
 
 def _attempt_request(url: str) -> Union[http.client.HTTPResponse, PyPIPackageNotFound]:
-    """Attempt request to given URL. Do not use this function."""
+    """Attempt request to given URL. Do not use this function directly."""
     try:
         res = request_url(url)
     except HTTPError as err:
@@ -74,7 +75,7 @@ def get_package(package: str, release: Optional[str]=None) -> PackageObject:
             )  # check if plain package is available
             if res:
                 raise PyPIPackageVersionNotFound(
-                    f"Version {release} not found in PyPI repository. Please double-check and try again."
+                    f"Version {release} not found for package '{package}' in PyPI repository. Please double-check and try again."
                 )
     else:
         res = _attempt_request(f"https://pypi.org/pypi/{package}/json")
@@ -144,22 +145,73 @@ def get_release_info(package: str, release: str) -> PackageInfoObject:
     )
     return pkg.info
 
-def download_wheel(
-    package: str, 
-    release: Optional[str]=None, 
-    dest: Optional[Union[str, BytesIO]]=None) -> None:
-    """
-    Not currently implemented
-    """
-    return
+def _download(url: str, dest: Union[str, BufferedWriter]) -> Tuple[int, Optional[str]]:
+    """Download a binary file from a given URL. Do not use this function directly."""
+    # download file and store bytes
+    request_obj = request_url(url)
+    data = request_obj.read()
 
-def download_sdist(
-    package: str, 
-    release: Optional[str]=None, 
-    dest: Optional[Union[str, BytesIO]]=None) -> None:
-    """
-    Not currently implemented
-    """
-    return
+    # enforce that we downloaded the correct file, and no corruption took place
+    from hashlib import md5
+    data_hash = md5(data).hexdigest()
+    cloud_hash = request_obj.headers["ETag"].strip('"')
+    if data_hash != cloud_hash:
+        raise HashDigestMatchError(
+            data_hash,
+            cloud_hash,
+            f"Hashes do not match. (data_hash (\"{data_hash}\") != cloud_hash (\"{cloud_hash}\")"
+        )
 
-__all__ = ["get_package", "get_info", "get_release_full", "get_release_info", "download_wheel", "download_sdist"]
+    # write bytes to destination and return
+    bw = 0
+    if isinstance(dest, str):
+        dest = open(dest, "wb")
+    with dest as f:
+        bw = f.write(data)
+    return bw, dest.name
+
+def download_dist(
+    package: str, 
+    release: Optional[str]=None,
+    dist_type: str = "bdist_wheel", 
+    dest: Optional[Union[str, BufferedWriter]]=None) -> bool:
+    """
+    Download a specified package's distribution file.
+
+    :param package: Name of desired package to download
+    :type package: str
+
+    :param release: Version of package to download (Default: stable)
+    :type release: Optional[str]
+
+    :param dist_type: Type of distribution to download (Default: bdist_wheel)
+    :type dist_type: str
+
+    :param dest: Destination for downloaded output file (Default: original filename)
+    :type dest: Optional[Union[str, BufferedWriter]]
+    """
+    if isinstance(dest, BufferedWriter) and dest.mode != 'wb': # enforce BufferedWriter is in binary mode
+        print("If using BufferedWriter for dest, ensure it is opened in 'wb' mode.")
+        return False
+
+    # search for package on PyPI
+    try:
+        pkg = get_package(package, release)
+    except (PyPIPackageNotFound, PyPIPackageVersionNotFound) as e:
+        print(e.__str__())
+        return False
+
+    # search for requested distribution type in pkg.urls
+    # and download distribution
+    for url in pkg.urls:
+        if url.packagetype == dist_type:
+            if dest is None:
+                dest = url.filename
+            s,f = _download(url.url, dest)
+            print("Wrote", s, "bytes to", f)
+        else:
+            print(f"Distribution type \"{dist_type}\" not available for this version of \"{package}\".")
+            return False
+    return True
+
+__all__ = ["get_package", "get_info", "get_release_full", "get_release_info", "download_dist"]

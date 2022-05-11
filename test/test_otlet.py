@@ -10,9 +10,9 @@ def test_failed_full_fetch():
         get_package('thispackagedoesnotexistinthepypirepository123456789')
 
 def test_successful_release_fetch():
-    res = get_release_full('otlet', '0.1.1')
+    res = get_package('otlet', '0.1.1')
     assert isinstance(res, PackageObject)
 
 def test_failed_release_fetch():
     with pytest.raises(PyPIAPIError):
-        get_release_full('otlet', '0.1.0')
+        get_package('otlet', '0.1.0')

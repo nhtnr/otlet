@@ -63,7 +63,7 @@ def init_args():
             args.__dict__["subparsers"].append(s)
 
     else:
-        args.__dict__["subparsers"] = None
+        args.__dict__["subparsers"] = []
 
     return args
 
@@ -75,7 +75,7 @@ def main():
     )  # no yucky exception on KeyboardInterrupt (^C)
     args = init_args()
 
-    if args.subparsers:
+    if "releases" in args.subparsers:
         util.print_releases(args)
     if args.urls:
         util.print_urls(args.package[0])
@@ -88,8 +88,8 @@ def main():
         )
 
     try:
-        if len(args.package) > 1:
-            pkg = api.get_release_full(args.package[0], args.package[1])
+        if args.package_version != "stable":
+            pkg = api.get_release_full(args.package[0], args.package_version)
         else:
             pkg = api.get_full(args.package[0])
     except exceptions.PyPIAPIError as err:

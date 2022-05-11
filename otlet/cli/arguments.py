@@ -1,11 +1,19 @@
 PACKAGE_ARGUMENT = {
     "opts": [],
-    "metavar": ("package"),
-    "default": [],
-    "nargs": "*",
+    "metavar": ("package_name"),
+    "nargs": 1,
     "type": str,
-    "help": "The package to search for"
+    "help": "The name of the package to search for"
 }
+
+PACKAGE_VERSION_ARGUMENT = {
+        "opts": [],
+        "metavar": ("package_version"),
+        "default": "stable",
+        "nargs": "?",
+        "type": str,
+        "help": "The version of the package to search for (optional)"
+    }
 
 ARGUMENT_LIST = {
     "urls": {
@@ -26,6 +34,11 @@ ARGUMENT_LIST = {
 }
 
 RELEASES_ARGUMENT_LIST = {
+    "show_vulnerable": {
+        "opts": ["--show-vulnerable"],
+        "help": "Not implemented",
+        "action": "store_true"
+    },
     "before_date": {
         "opts": ["-bd", "--before-date"],
         "metavar": ("DATE"),

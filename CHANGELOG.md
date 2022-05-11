@@ -10,6 +10,11 @@
         - move printers into dedicated module (otlet.cli.util)
         - seperate argparser into dedicated module (otlet.cli.options)
 - [CLI] spice up version command
+- [CLI] split up package positional argument into:
+        - package
+                - single argument positional for package name (i.e. 'otlet')
+        - package_version
+                - single argument OPTIONAL positional for package version (i.e. '0.6.0')
 
 # 0.5.1
 

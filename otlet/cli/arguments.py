@@ -9,13 +9,13 @@ PACKAGE_ARGUMENT: Dict[str, Any] = {
 }
 
 PACKAGE_VERSION_ARGUMENT: Dict[str, Any] = {
-        "opts": [],
-        "metavar": ("package_version"),
-        "default": "stable",
-        "nargs": "?",
-        "type": str,
-        "help": "The version of the package to search for (optional)"
-    }
+    "opts": [],
+    "metavar": ("package_version"),
+    "default": "stable",
+    "nargs": "?",
+    "type": str,
+    "help": "The version of the package to search for (optional)"
+}
 
 ARGUMENT_LIST: Dict[str, Any] = {
     "urls": {

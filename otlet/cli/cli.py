@@ -32,14 +32,21 @@ from .options import OtletArgumentParser
 from .. import __version__, api, exceptions
 
 
-
 def init_args():
     parser = OtletArgumentParser()
 
     args = parser.parse_args()
     if args.version:
-        WHITE = "\u001b[38;5;255m" if os.environ.get("TERM") == "xterm-256color" else "\u001b[37m"
-        CYAN = "\u001b[38;5;153m" if os.environ.get("TERM") == "xterm-256color" else "\u001b[36m"
+        WHITE = (
+            "\u001b[38;5;255m"
+            if os.environ.get("TERM") == "xterm-256color"
+            else "\u001b[37m"
+        )
+        CYAN = (
+            "\u001b[38;5;153m"
+            if os.environ.get("TERM") == "xterm-256color"
+            else "\u001b[36m"
+        )
         print(
             textwrap.dedent(
                 f"""
@@ -49,7 +56,7 @@ def init_args():
                         {WHITE}(c) 2022-present Noah Tanner, released under the terms of the MIT License
 
                         {CYAN}°º¤ø,¸¸,ø¤º°`°º¤ø,¸,ø¤°º¤ø,¸¸,ø¤º°`°º¤ø,¸ \u001b[0m
-                """ # ascii art sourced from http://1lineart.kulaone.com
+                """  # ascii art sourced from http://1lineart.kulaone.com
             )
         )
         raise SystemExit(0)

@@ -27,23 +27,39 @@ Custom exceptions used by otlet
 
 class PyPIAPIError(Exception):
     """Generic error pertaining to the PyPI API, not an otlet error."""
+
     pass
 
 
 class PyPIPackageNotFound(PyPIAPIError):
     """Raised when a specified package WAS NOT found in the package index."""
+
     pass
 
 
 class PyPIPackageVersionNotFound(PyPIAPIError):
     """Raised when a specified package WAS found, but the specified version WAS NOT."""
+
     pass
+
 
 class HashDigestMatchError(Exception):
     """Raised when two hash digests do not match."""
-    def __init__(self, cmp, against, *args: object,) -> None:
-        super().__init__(*args)
-        self.cmp = cmp # hash that was being check
-        self.against = against # hash that 'cmp' was being compared against
 
-__all__ = ["PyPIAPIError", "PyPIPackageNotFound", "PyPIPackageVersionNotFound", "HashDigestMatchError"]
+    def __init__(
+        self,
+        cmp,
+        against,
+        *args: object,
+    ) -> None:
+        super().__init__(*args)
+        self.cmp = cmp  # hash that was being check
+        self.against = against  # hash that 'cmp' was being compared against
+
+
+__all__ = [
+    "PyPIAPIError",
+    "PyPIPackageNotFound",
+    "PyPIPackageVersionNotFound",
+    "HashDigestMatchError",
+]

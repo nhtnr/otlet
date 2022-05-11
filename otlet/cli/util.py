@@ -4,11 +4,12 @@ import argparse
 from typing import Optional
 from .. import api
 
+
 def print_releases(args: Optional[argparse.Namespace] = None):
     from datetime import datetime
     from ..packaging.version import etc, Version
 
-    package = args.package[0] # type: ignore
+    package = args.package[0]  # type: ignore
     _top_version = etc.TopVersion()
     _bottom_version = etc.BottomVersion()
     _top_date = datetime.fromisoformat("9999-12-31T23:59:59")
@@ -79,5 +80,6 @@ def print_vulns(package: str, version: str):
         os.system("clear" if os.name != "nt" else "cls")
 
     raise SystemExit(0)
+
 
 __all__ = ["print_releases", "print_urls", "print_vulns"]

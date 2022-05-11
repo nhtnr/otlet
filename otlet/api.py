@@ -54,7 +54,8 @@ def _attempt_request(url: str) -> Union[http.client.HTTPResponse, PyPIPackageNot
             raise err
     return res
 
-def get_package(package: str, release: Optional[str]=None) -> PackageObject:
+
+def get_package(package: str, release: Optional[str] = None) -> PackageObject:
     """
     Get full response from PyPI API.
 
@@ -82,6 +83,7 @@ def get_package(package: str, release: Optional[str]=None) -> PackageObject:
     if isinstance(res, PyPIPackageNotFound):
         raise res
     return PackageObject.construct(json.loads(res.readlines()[0].decode()))
+
 
 def get_release_full(package: str, release: str) -> PackageObject:
     """
@@ -145,6 +147,7 @@ def get_release_info(package: str, release: str) -> PackageInfoObject:
     )
     return pkg.info
 
+
 def _download(url: str, dest: Union[str, BufferedWriter]) -> Tuple[int, Optional[str]]:
     """Download a binary file from a given URL. Do not use this function directly."""
     # download file and store bytes
@@ -153,13 +156,14 @@ def _download(url: str, dest: Union[str, BufferedWriter]) -> Tuple[int, Optional
 
     # enforce that we downloaded the correct file, and no corruption took place
     from hashlib import md5
+
     data_hash = md5(data).hexdigest()
     cloud_hash = request_obj.headers["ETag"].strip('"')
     if data_hash != cloud_hash:
         raise HashDigestMatchError(
             data_hash,
             cloud_hash,
-            f"Hashes do not match. (data_hash (\"{data_hash}\") != cloud_hash (\"{cloud_hash}\")"
+            f'Hashes do not match. (data_hash ("{data_hash}") != cloud_hash ("{cloud_hash}")',
         )
 
     # write bytes to destination and return
@@ -170,11 +174,13 @@ def _download(url: str, dest: Union[str, BufferedWriter]) -> Tuple[int, Optional
         bw = f.write(data)
     return bw, dest.name
 
+
 def download_dist(
-    package: str, 
-    release: Optional[str]=None,
-    dist_type: str = "bdist_wheel", 
-    dest: Optional[Union[str, BufferedWriter]]=None) -> bool:
+    package: str,
+    release: Optional[str] = None,
+    dist_type: str = "bdist_wheel",
+    dest: Optional[Union[str, BufferedWriter]] = None,
+) -> bool:
     """
     Download a specified package's distribution file.
 
@@ -190,7 +196,9 @@ def download_dist(
     :param dest: Destination for downloaded output file (Default: original filename)
     :type dest: Optional[Union[str, BufferedWriter]]
     """
-    if isinstance(dest, BufferedWriter) and dest.mode != 'wb': # enforce BufferedWriter is in binary mode
+    if (
+        isinstance(dest, BufferedWriter) and dest.mode != "wb"
+    ):  # enforce BufferedWriter is in binary mode
         print("If using BufferedWriter for dest, ensure it is opened in 'wb' mode.")
         return False
 
@@ -207,11 +215,20 @@ def download_dist(
         if url.packagetype == dist_type:
             if dest is None:
                 dest = url.filename
-            s,f = _download(url.url, dest)
+            s, f = _download(url.url, dest)
             print("Wrote", s, "bytes to", f)
         else:
-            print(f"Distribution type \"{dist_type}\" not available for this version of \"{package}\".")
+            print(
+                f'Distribution type "{dist_type}" not available for this version of "{package}".'
+            )
             return False
     return True
 
-__all__ = ["get_package", "get_info", "get_release_full", "get_release_info", "download_dist"]
+
+__all__ = [
+    "get_package",
+    "get_info",
+    "get_release_full",
+    "get_release_info",
+    "download_dist",
+]

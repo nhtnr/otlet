@@ -1,4 +1,6 @@
-PACKAGE_ARGUMENT = {
+from typing import Dict, Any
+
+PACKAGE_ARGUMENT: Dict[str, Any] = {
     "opts": [],
     "metavar": ("package_name"),
     "nargs": 1,
@@ -6,7 +8,7 @@ PACKAGE_ARGUMENT = {
     "help": "The name of the package to search for"
 }
 
-PACKAGE_VERSION_ARGUMENT = {
+PACKAGE_VERSION_ARGUMENT: Dict[str, Any] = {
         "opts": [],
         "metavar": ("package_version"),
         "default": "stable",
@@ -15,7 +17,7 @@ PACKAGE_VERSION_ARGUMENT = {
         "help": "The version of the package to search for (optional)"
     }
 
-ARGUMENT_LIST = {
+ARGUMENT_LIST: Dict[str, Any] = {
     "urls": {
         "opts": ["--urls"],
         "help": "print list of all relevant URLs for package",
@@ -33,7 +35,7 @@ ARGUMENT_LIST = {
     }
 }
 
-RELEASES_ARGUMENT_LIST = {
+RELEASES_ARGUMENT_LIST: Dict[str, Any] = {
     "show_vulnerable": {
         "opts": ["--show-vulnerable"],
         "help": "Not implemented",
@@ -69,6 +71,6 @@ RELEASES_ARGUMENT_LIST = {
     },
 }
 
-DOWNLOAD_ARGUMENTS_LIST = {
-    
+DOWNLOAD_ARGUMENTS_LIST: Dict[str, Any] = {
+
 }

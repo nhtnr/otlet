@@ -8,7 +8,7 @@ def print_releases(args: Optional[argparse.Namespace] = None):
     from datetime import datetime
     from ..packaging.version import etc, Version
 
-    package = args.package[0]
+    package = args.package[0] # type: ignore
     _top_version = etc.TopVersion()
     _bottom_version = etc.BottomVersion()
     _top_date = datetime.fromisoformat("9999-12-31T23:59:59")
@@ -23,7 +23,7 @@ def print_releases(args: Optional[argparse.Namespace] = None):
     if args and args.before_date:
         _top_date = datetime.fromisoformat(args.before_date[0] + "T23:59:59")
 
-    pkg = api.get_full(package)
+    pkg = api.get_package(package)
     for rel, obj in pkg.releases.items():
         if _top_version < rel or _bottom_version > rel:
             continue
@@ -40,7 +40,7 @@ def print_releases(args: Optional[argparse.Namespace] = None):
 
 
 def print_urls(package: str):
-    pkg = api.get_full(package)
+    pkg = api.get_package(package)
     for _type, url in pkg.info.project_urls.__dict__.items():
         print(f"{_type}: {url}")
 

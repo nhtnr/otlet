@@ -68,3 +68,7 @@ RELEASES_ARGUMENT_LIST = {
         "action": "store"
     },
 }
+
+DOWNLOAD_ARGUMENTS_LIST = {
+    
+}

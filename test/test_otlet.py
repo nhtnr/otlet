@@ -2,12 +2,12 @@ import pytest
 from otlet import *
 
 def test_successful_full_fetch():
-    res = get_full('otlet')
+    res = get_package('otlet')
     assert isinstance(res, PackageObject)
 
 def test_failed_full_fetch():
     with pytest.raises(PyPIPackageNotFound):
-        get_full('thispackagedoesnotexistinthepypirepository123456789')
+        get_package('thispackagedoesnotexistinthepypirepository123456789')
 
 def test_successful_release_fetch():
     res = get_release_full('otlet', '0.1.1')

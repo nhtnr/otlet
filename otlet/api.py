@@ -32,7 +32,8 @@ import json
 import http.client
 from urllib.request import urlopen as request_url
 from urllib.error import HTTPError
-from typing import Union
+from typing import Optional, Union
+from io import BytesIO
 
 from .util import deprecated
 from .exceptions import *
@@ -52,19 +53,34 @@ def _attempt_request(url: str) -> Union[http.client.HTTPResponse, PyPIPackageNot
             raise err
     return res
 
-
-def get_full(package: str) -> PackageObject:
+def get_package(package: str, release: Optional[str]=None) -> PackageObject:
     """
     Get full response from PyPI API.
 
     :param package: Name of package to search for
+    :type package: str
+    :param release: Release version of package (optional)
+    :type release: Optional[str]
     :return: :class:`~otlet.types.PackageObject`
+
+    .. versionchanged:: 0.6.0
+        added release as a optional argument, in order to consolidate from 'get_release_full()'
     """
-    res = _attempt_request(f"https://pypi.org/pypi/{package}/json")
+    if release:
+        res = _attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
+        if isinstance(res, PyPIPackageNotFound):
+            res = _attempt_request(
+                f"https://pypi.org/pypi/{package}/json"
+            )  # check if plain package is available
+            if res:
+                raise PyPIPackageVersionNotFound(
+                    f"Version {release} not found in PyPI repository. Please double-check and try again."
+                )
+    else:
+        res = _attempt_request(f"https://pypi.org/pypi/{package}/json")
     if isinstance(res, PyPIPackageNotFound):
         raise res
     return PackageObject.construct(json.loads(res.readlines()[0].decode()))
-
 
 def get_release_full(package: str, release: str) -> PackageObject:
     """
@@ -73,7 +89,13 @@ def get_release_full(package: str, release: str) -> PackageObject:
     :param package: Name of package to search for
     :param release: Release version of package
     :return: :class:`~otlet.types.PackageObject`
+
+    .. deprecated:: 0.6.0
+        This function is deprecated and will be removed in version 1.0.0
     """
+    deprecated(
+        "'get_release_full' is a deprecated function, and will be removed in version 1.0.0"
+    )
     res = _attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
     if isinstance(res, PyPIPackageNotFound):
         res = _attempt_request(
@@ -101,7 +123,7 @@ def get_info(package: str) -> PackageInfoObject:
     deprecated(
         "get_info and get_release_info are deprecated methods and will be removed in version 1.0.0"
     )
-    pkg = get_full(package)
+    pkg = get_package(package)
     return pkg.info
 
 
@@ -122,5 +144,22 @@ def get_release_info(package: str, release: str) -> PackageInfoObject:
     )
     return pkg.info
 
+def download_wheel(
+    package: str, 
+    release: Optional[str]=None, 
+    dest: Optional[Union[str, BytesIO]]=None) -> None:
+    """
+    Not currently implemented
+    """
+    return
 
-__all__ = ["get_full", "get_info", "get_release_full", "get_release_info"]
+def download_sdist(
+    package: str, 
+    release: Optional[str]=None, 
+    dest: Optional[Union[str, BytesIO]]=None) -> None:
+    """
+    Not currently implemented
+    """
+    return
+
+__all__ = ["get_package", "get_info", "get_release_full", "get_release_info", "download_wheel", "download_sdist"]

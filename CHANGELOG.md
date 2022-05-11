@@ -3,6 +3,9 @@
 - [API] remove DeprecationWarning from otlet.packaging.version.LegacyVersion
         - since this is an indexing program, we need to retain LegacyVersion for properly searching/displaying package versions that do not conform to the PEP 440 standard
 - [API] add otlet.packaging.version.etc for extra version-related operations
+- [API] rename 'otlet.get_full()' to 'otlet.get_package()'
+- [API] merge 'otlet.get_release_full()' functionality into 'otlet.get_package()'
+- [API] deprecate 'otlet.get_release_full()', removal in 1.0.0
 - [CLI] remove -gt and -lt
 - [CLI] convert '--releases' to subcommand 'otlet releases':
         - add '--before-date' ('-bd'), '--after-date' ('-ad'), '--before-version' ('-bv'), and '--after-version' ('-av')

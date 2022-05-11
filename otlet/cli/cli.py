@@ -91,7 +91,7 @@ def main():
         if args.package_version != "stable":
             pkg = api.get_release_full(args.package[0], args.package_version)
         else:
-            pkg = api.get_full(args.package[0])
+            pkg = api.get_package(args.package[0])
     except exceptions.PyPIAPIError as err:
         raise SystemExit(f"{args.package[0]}: " + err.__str__())
 

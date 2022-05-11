@@ -1,4 +1,5 @@
 import os
+import sys
 import textwrap
 import argparse
 from typing import Optional
@@ -53,7 +54,10 @@ def print_urls(package: str):
 
 
 def print_vulns(package: str, version: str):
-    pkg = api.get_release_full(package, version)
+    if version == "stable":
+        pkg = api.get_package(package)
+    else:
+        pkg = api.get_package(package, version)
 
     if pkg.vulnerabilities is None:
         print("No vulnerabilities found for this release! :)")
@@ -84,6 +88,20 @@ def print_vulns(package: str, version: str):
         os.system("clear" if os.name != "nt" else "cls")
 
     raise SystemExit(0)
+
+
+def download_dist(
+    package_name: str,
+    package_version: str,
+    dist_type: Optional[str] = None,
+    dest: Optional[str] = None,
+):
+    """Frontend for otlet.api.download_dist()"""
+    if package_version == "stable":
+        package_version = None # type: ignore
+    if dist_type == None:
+        dist_type = "bdist_wheel"
+    return api.download_dist(package_name, package_version, dist_type, dest) # type: ignore
 
 
 __all__ = ["print_releases", "print_urls", "print_vulns"]

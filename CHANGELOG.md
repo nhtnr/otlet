@@ -19,6 +19,8 @@
                 - single argument positional for package name (i.e. 'otlet')
         - package_version
                 - single argument OPTIONAL positional for package version (i.e. '0.6.0')
+- [CLI] add subcommand 'otlet download':
+        - download package distributions from the PyPI CDN
 
 # 0.5.1
 

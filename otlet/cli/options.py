@@ -41,8 +41,8 @@ class OtletArgumentParser(ArgumentParser):
             )
             self.download_subparser = self.subparsers.add_parser(
                 "download",
-                description="dl",
-                help="dl",
+                description="Download package distribution files from PyPI CDN",
+                help="Download package distribution files from PyPI CDN",
                 epilog="(c) 2022-present Noah Tanner, released under the terms of the MIT License",
             )
             for key, arg in self.releases_arguments.items():

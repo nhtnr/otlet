@@ -32,7 +32,7 @@ import json
 import http.client
 from urllib.request import urlopen as request_url
 from urllib.error import HTTPError
-from typing import Optional, Tuple, Union
+from typing import BinaryIO, Optional, Tuple, Union
 from io import BufferedWriter
 from .exceptions import HashDigestMatchError
 
@@ -148,7 +148,7 @@ def get_release_info(package: str, release: str) -> PackageInfoObject:
     return pkg.info
 
 
-def _download(url: str, dest: Union[str, BufferedWriter]) -> Tuple[int, Optional[str]]:
+def _download(url: str, dest: Union[str, BinaryIO]) -> Tuple[int, Optional[str]]:
     """Download a binary file from a given URL. Do not use this function directly."""
     # download file and store bytes
     request_obj = request_url(url)
@@ -179,7 +179,7 @@ def download_dist(
     package: str,
     release: Optional[str] = None,
     dist_type: str = "bdist_wheel",
-    dest: Optional[Union[str, BufferedWriter]] = None,
+    dest: Optional[Union[str, BinaryIO]] = None,
 ) -> bool:
     """
     Download a specified package's distribution file.
@@ -194,7 +194,7 @@ def download_dist(
     :type dist_type: str
 
     :param dest: Destination for downloaded output file (Default: original filename)
-    :type dest: Optional[Union[str, BufferedWriter]]
+    :type dest: Optional[Union[str, BinaryIO]]
     """
     if (
         isinstance(dest, BufferedWriter) and dest.mode != "wb"
@@ -211,18 +211,20 @@ def download_dist(
 
     # search for requested distribution type in pkg.urls
     # and download distribution
+    success = False
     for url in pkg.urls:
         if url.packagetype == dist_type:
             if dest is None:
                 dest = url.filename
             s, f = _download(url.url, dest)
             print("Wrote", s, "bytes to", f)
-        else:
-            print(
-                f'Distribution type "{dist_type}" not available for this version of "{package}".'
-            )
-            return False
-    return True
+            success = True
+            break
+    if not success:
+        print(
+            f'Distribution type "{dist_type}" not available for this version of "{package}".'
+        )
+    return success
 
 
 __all__ = [

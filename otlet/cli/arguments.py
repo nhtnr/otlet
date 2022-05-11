@@ -71,4 +71,19 @@ RELEASES_ARGUMENT_LIST: Dict[str, Any] = {
     },
 }
 
-DOWNLOAD_ARGUMENTS_LIST: Dict[str, Any] = {}
+DOWNLOAD_ARGUMENTS_LIST: Dict[str, Any] = {
+    "dist_type": {
+        "opts": ["-d", "--dist"],
+        "metavar": ("DIST_TYPE"),
+        "help": "Type of distribution to download (Default: bdist_wheel)",
+        "nargs": "?",
+        "action": "store",
+    },
+    "dest": {
+        "opts": ["-o", "--output"],
+        "metavar": ("FILENAME"),
+        "help": "File name to save distribution as (optional)",
+        "nargs": "?",
+        "action": "store",
+    },
+}

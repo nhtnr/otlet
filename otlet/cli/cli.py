@@ -25,6 +25,7 @@ CLI tool for returning PyPI package information, using the otlet wrapper
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 import os
+import sys
 import signal
 import textwrap
 from . import util
@@ -82,17 +83,17 @@ def main():
     )  # no yucky exception on KeyboardInterrupt (^C)
     args = init_args()
 
-    if "releases" in args.subparsers:
-        util.print_releases(args)
+    if args.subparsers:
+        if "releases" in sys.argv:
+            util.print_releases(args)
+        if "download" in sys.argv:
+            return util.download_dist(
+                args.package[0], args.package_version, args.dist_type, args.dest
+            )
     if args.urls:
         util.print_urls(args.package[0])
-
-    if args.vulnerabilities and len(args.package) > 1:
-        util.print_vulns(args.package[0], args.package[1])
-    elif args.vulnerabilities and not len(args.package) > 1:
-        raise SystemExit(
-            "Please supply both a package AND a package version, i.e. 'otlet django 3.1.0 --vulnerabilities'"
-        )
+    if args.vulnerabilities:
+        util.print_vulns(args.package[0], args.package_version)
 
     try:
         if args.package_version != "stable":
@@ -124,3 +125,8 @@ def main():
         msg += f"\u001b[1m\u001b[33m\n== NOTE ==\u001b[0m\nThis version has been yanked from PyPI.\n\t Reason: '{pkg.info.yanked_reason}'\n"
     print(msg)
     raise SystemExit(0)
+
+
+def run_cli():
+    code = main()
+    raise SystemExit(not code)

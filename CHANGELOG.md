@@ -1,3 +1,7 @@
+# 0.7.0
+
+- split CLI into seperate package
+
 # 0.6.0
 
 - [API] remove DeprecationWarning from otlet.packaging.version.LegacyVersion

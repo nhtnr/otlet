@@ -1,16 +1,13 @@
 [tool.poetry]
 name = "otlet"
-version = "0.6.0"
-description = "CLI tool and wrapper for PyPI JSON Web API"
+version = "0.7.0"
+description = "Zero-dependency, pure-python wrapper for the PyPI JSON Web API"
 readme = "README.md"
 documentation = "https://otlet.readthedocs.io/en/latest/"
 repository = "https://github.com/nhtnr/otlet"
 license = "MIT"
 authors = ["Noah Tanner (nhtnr) <noahtnr@gmail.com>"]
 classifiers = ["Development Status :: 4 - Beta", "Environment :: Console",  "Intended Audience :: Developers", "License :: OSI Approved :: MIT License", "License :: OSI Approved :: BSD License", "License :: OSI Approved :: Apache Software License"]
-
-[tool.poetry.scripts]
-otlet = "otlet.cli.cli:run_cli"
 
 [tool.poetry.dependencies]
 python = "^3.7"

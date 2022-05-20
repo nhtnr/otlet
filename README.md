@@ -1,6 +1,6 @@
 <div align="center">
     <img src="https://commedesgarcons.s-ul.eu/Ht5pZjlN" alt="otlet readme image"><br>
-    Zero-dependency CLI tool and wrapper for the PyPI JSON Web API.
+    Zero-dependency, pure-python wrapper for the PyPI JSON Web API.
 </div>
 
 [![Documentation Status](https://readthedocs.org/projects/otlet/badge/?version=latest)](https://otlet.readthedocs.io/en/latest/?badge=latest)
@@ -17,7 +17,7 @@ Otlet supports Python 3.7 and above, but at least Python 3.8 is recommended.
 
 The simplest method is installing otlet from PyPI using pip:  
   
-```pip install otlet```
+```pip install -U otlet```
 
 It can also be installed from source using the [Poetry dependency management system](https://python-poetry.org/):  
   

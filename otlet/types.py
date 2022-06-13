@@ -27,14 +27,41 @@ Classes used by otlet for storing data returned from PyPI Web API.
 import re
 import time
 import datetime
-from typing import Any, Optional, Union, Dict, List
+import json
+from http.client import HTTPResponse
+from urllib.request import urlopen
+from urllib.error import HTTPError
+from typing import Any, Optional, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
-from .packaging.version import Version, LegacyVersion, parse
+from .packaging.version import parse
+from .exceptions import PyPIPackageNotFound, PyPIPackageVersionNotFound
 
 
-@dataclass
-class PackageInfoObject:
+class PackageBase(object):
+    def __init__(self, package_name: str, release: Optional[str] = None) -> None:
+        self.name = package_name
+        self.release = release
+        self._http_response = self._attempt_request()
+        self.http_response = json.loads(self._http_response.readlines()[0].decode())
+
+    def _attempt_request(self) -> HTTPResponse:
+        """Attempt PyPI API request for package. You should not need to call this function directly."""
+        try:
+            if self.release is None:
+                res = urlopen(f"https://pypi.org/pypi/{self.name}/json")
+            else:
+                res = urlopen(f"https://pypi.org/pypi/{self.name}/{self.release}/json")
+        except HTTPError as err:
+            if err.code == 404:
+                if self.release is None:
+                    raise PyPIPackageNotFound(self.name)
+                raise PyPIPackageVersionNotFound(self.name, self.release)
+            else:
+                raise err
+        return res
+
+class PackageInfoObject(PackageBase):
     """
     Contains data from API response key: 'info'
 
@@ -117,65 +144,26 @@ class PackageInfoObject:
     :type yanked_reason: str
     """
 
-    author: str
-    author_email: str
-    bugtrack_url: Optional[str]
-    classifiers: List[str]
-    description: Optional[str]
-    description_content_type: Optional[str]
-    docs_url: Optional[str]
-    download_url: Optional[str]
-    downloads: SimpleNamespace
-    home_page: Optional[str]
-    keywords: Optional[str]
-    license: Optional[str]
-    maintainer: Optional[str]
-    maintainer_email: Optional[str]
-    name: str
-    package_url: str
-    platform: Optional[str]
-    project_url: str
-    project_urls: Optional[SimpleNamespace]
-    release_url: str
-    requires_dist: Optional[List[str]]
-    requires_python: Optional[str]
-    summary: Optional[str]
-    version: Union[Version, LegacyVersion]
-    yanked: bool
-    yanked_reason: Optional[str]
+    def __init__(
+        self, 
+        package_name: str, 
+        release: Optional[str] = None, 
+        perform_request: bool = True, 
+        http_response: Dict[str, Any] = None
+    ) -> None:
+        if perform_request:
+            super().__init__(package_name, release)
+        else:
+            self.http_response = http_response
 
-    @classmethod
-    def construct(cls, pkginfo: Dict[str, Any]):
-        return cls(
-            pkginfo["author"],
-            pkginfo["author_email"],
-            pkginfo["bugtrack_url"] or None,
-            pkginfo["classifiers"],
-            pkginfo["description"] or None,
-            pkginfo["description_content_type"] or None,
-            pkginfo["docs_url"] or None,
-            pkginfo["download_url"] or None,
-            SimpleNamespace(**pkginfo["downloads"]),
-            pkginfo["home_page"] or None,
-            pkginfo["keywords"] or None,
-            pkginfo["license"] or None,
-            pkginfo["maintainer"] or None,
-            pkginfo["maintainer_email"] or None,
-            pkginfo["name"],
-            pkginfo["package_url"],
-            pkginfo["platform"] or None,
-            pkginfo["project_url"],
-            SimpleNamespace(**pkginfo["project_urls"])
-            if pkginfo["project_urls"]
-            else None,
-            pkginfo["release_url"],
-            pkginfo["requires_dist"] or None,
-            pkginfo["requires_python"] or None,
-            pkginfo["summary"] or None,
-            parse(pkginfo["version"]),
-            pkginfo["yanked"],
-            pkginfo["yanked_reason"] or None,
-        )
+        for k,v in self.http_response["info"].items():
+            if v == "":
+                self.__dict__[k] = None
+            elif k == "downloads" or k == "project_urls":
+                self.__dict__[k] = SimpleNamespace(**v) if v else None
+            elif k == "version":
+                self.__dict__[k] = parse(v)
+            self.__dict__[k] = v
 
 
 @dataclass
@@ -307,9 +295,7 @@ class PackageVulnerabilitiesObject:
             vuln_dict["source"],
         )
 
-
-@dataclass
-class PackageObject:
+class PackageObject(PackageBase):
     """
     Contains full API response data
 
@@ -329,42 +315,27 @@ class PackageObject:
     :type vulnerabilities: Optional[List[:class:`~PackageVulnerabilitiesObject`]]
     """
 
-    _data: Dict[str, Any]
-    info: PackageInfoObject
-    last_serial: int
-    releases: Dict[Union[Version, LegacyVersion], URLReleaseObject]
-    urls: List[URLReleaseObject]
-    vulnerabilities: Optional[List[PackageVulnerabilitiesObject]]
-
-    @classmethod
-    def construct(cls, http_request: Dict[str, Any]):
-        j = cls(
-            http_request,
-            PackageInfoObject.construct(http_request["info"]),
-            http_request["last_serial"],
-            dict(),
-            [URLReleaseObject.construct(_) for _ in http_request["urls"]],
-            [
+    def __init__(self, package_name: str, release: Optional[str] = None) -> None:
+        super().__init__(package_name, release)
+        self.info = PackageInfoObject(package_name, release, False, self.http_response)
+        self.last_serial = self.http_response["last_serial"]
+        self.releases = dict()
+        self.urls = [URLReleaseObject.construct(_) for _ in self.http_response["urls"]]
+        self.vulnerabilities = [
                 PackageVulnerabilitiesObject.construct(_)
-                for _ in http_request["vulnerabilities"]
-            ]
-            or None,
-        )
-        for k, v in http_request["releases"].items():
+                for _ in self.http_response["vulnerabilities"]
+            ] or None
+
+        for k, v in self.http_response["releases"].items():
             if not v:
                 continue
-            j.releases[parse(k)] = URLReleaseObject.construct(v[0])
-        return j
+            self.releases[parse(k)] = URLReleaseObject.construct(v[0])
 
     @property
     def canonicalized_name(self):
         return (
             re.compile(r"[-_.]+").sub("-", self.info.name).lower()
         )  # stolen from packaging module
-
-    @property
-    def name(self):
-        return self.info.name
 
     @property
     def version(self):

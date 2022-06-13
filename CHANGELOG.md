@@ -1,6 +1,16 @@
-# 0.7.0
+# 1.0.0
 
-- split CLI into seperate package
+- stable release
+- split CLI into seperate package, 'otlet-cli'
+- remove all deprecated functions
+        - otlet.api.get_release_full()
+        - otlet.api.get_release_info()
+        - otlet.api.get_package_info()
+- convert "PackageObject", and "PackageInfoObject" from dataclasses to instantiable objects
+        - also moved from types.py to api.py
+        - in doing so, removed redundant 'otlet.api.get_package()' func
+- remove 'otlet.api.download_dist()'
+        - moved to CLI, no need for it to be in the API, really
 
 # 0.6.0
 

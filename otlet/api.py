@@ -28,130 +28,18 @@ Functions that call the PyPI Web API.
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-import json
-import http.client
-from urllib.request import urlopen as request_url
-from urllib.error import HTTPError
+from urllib.request import urlopen
 from typing import BinaryIO, Optional, Tuple, Union
 from io import BufferedWriter
 from .exceptions import HashDigestMatchError
 
-from .util import deprecated
 from .exceptions import *
 from .types import *
-
-
-def _attempt_request(url: str) -> Union[http.client.HTTPResponse, PyPIPackageNotFound]:
-    """Attempt request to given URL. Do not use this function directly."""
-    try:
-        res = request_url(url)
-    except HTTPError as err:
-        if err.code == 404:
-            return PyPIPackageNotFound(
-                "Package not found in PyPI repository. Please check your spelling and try again."
-            )
-        else:
-            raise err
-    return res
-
-
-def get_package(package: str, release: Optional[str] = None) -> PackageObject:
-    """
-    Get full response from PyPI API.
-
-    :param package: Name of package to search for
-    :type package: str
-    :param release: Release version of package (optional)
-    :type release: Optional[str]
-    :return: :class:`~otlet.types.PackageObject`
-
-    .. versionchanged:: 0.6.0
-        added release as a optional argument, in order to consolidate from 'get_release_full()'
-    """
-    if release:
-        res = _attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
-        if isinstance(res, PyPIPackageNotFound):
-            res = _attempt_request(
-                f"https://pypi.org/pypi/{package}/json"
-            )  # check if plain package is available
-            if res:
-                raise PyPIPackageVersionNotFound(
-                    f"Version {release} not found for package '{package}' in PyPI repository. Please double-check and try again."
-                )
-    else:
-        res = _attempt_request(f"https://pypi.org/pypi/{package}/json")
-    if isinstance(res, PyPIPackageNotFound):
-        raise res
-    return PackageObject.construct(json.loads(res.readlines()[0].decode()))
-
-
-def get_release_full(package: str, release: str) -> PackageObject:
-    """
-    Get full response from PyPI API for specific version.
-
-    :param package: Name of package to search for
-    :param release: Release version of package
-    :return: :class:`~otlet.types.PackageObject`
-
-    .. deprecated:: 0.6.0
-        This function is deprecated and will be removed in version 1.0.0
-    """
-    deprecated(
-        "'get_release_full' is a deprecated function, and will be removed in version 1.0.0"
-    )
-    res = _attempt_request(f"https://pypi.org/pypi/{package}/{release}/json")
-    if isinstance(res, PyPIPackageNotFound):
-        res = _attempt_request(
-            f"https://pypi.org/pypi/{package}/json"
-        )  # check if plain package is available
-        if isinstance(res, PyPIPackageNotFound):
-            raise res  # if not, raise PyPIPackageNotFound
-        else:
-            raise PyPIPackageVersionNotFound(
-                f"Version {release} not found in PyPI repository. Please double-check and try again."
-            )
-    return PackageObject.construct(json.loads(res.readlines()[0].decode()))
-
-
-def get_info(package: str) -> PackageInfoObject:
-    """
-    Get package info from PyPI API.
-
-    :param package: Name of package to search for
-    :return: :class:`~otlet.types.PackageInfoObject`
-
-    .. deprecated:: 0.3.0
-        This function is deprecated and will be removed in version 1.0.0
-    """
-    deprecated(
-        "get_info and get_release_info are deprecated methods and will be removed in version 1.0.0"
-    )
-    pkg = get_package(package)
-    return pkg.info
-
-
-def get_release_info(package: str, release: str) -> PackageInfoObject:
-    """
-    Get package info from PyPI API for specific version.
-
-    :param package: Name of package to search for
-    :param release: Release version of package
-    :return: :class:`~otlet.types.PackageInfoObject`
-
-    .. deprecated:: 0.3.0
-        This function is deprecated and will be removed in version 1.0.0
-    """
-    pkg = get_release_full(package, release)
-    deprecated(
-        "get_info and get_release_info are deprecated methods and will be removed in version 1.0.0"
-    )
-    return pkg.info
-
 
 def _download(url: str, dest: Union[str, BinaryIO]) -> Tuple[int, Optional[str]]:
     """Download a binary file from a given URL. Do not use this function directly."""
     # download file and store bytes
-    request_obj = request_url(url)
+    request_obj = urlopen(url)
     data = request_obj.read()
 
     # enforce that we downloaded the correct file, and no corruption took place
@@ -193,7 +81,7 @@ def download_dist(
     :param dist_type: Type of distribution to download (Default: bdist_wheel)
     :type dist_type: str
 
-    :param dest: Destination for downloaded output file (Default: original filename)
+    :param dest: Destination for downloaded output file (Default: current directory with original filename)
     :type dest: Optional[Union[str, BinaryIO]]
     """
     if (
@@ -204,7 +92,7 @@ def download_dist(
 
     # search for package on PyPI
     try:
-        pkg = get_package(package, release)
+        pkg = PackageObject(package, release)
     except (PyPIPackageNotFound, PyPIPackageVersionNotFound) as e:
         print(e.__str__())
         return False
@@ -228,9 +116,5 @@ def download_dist(
 
 
 __all__ = [
-    "get_package",
-    "get_info",
-    "get_release_full",
-    "get_release_info",
     "download_dist",
 ]

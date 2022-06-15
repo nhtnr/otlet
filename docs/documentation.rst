@@ -1,10 +1,9 @@
 API documentation
 =================================
 
-.. automodule:: otlet.types
-    :members:
 
 .. automodule:: otlet.api
+    :show-inheritance:
     :members:
 
 .. automodule:: otlet.exceptions

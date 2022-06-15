@@ -1,9 +1,23 @@
 Welcome to otlet's documentation!
 =================================
 
-**Otlet**, is a python wrapper for the PyPI JSON Web API. Also contained with
-the package is a CLI tool for querying the API to get information about a given
-package in the index.
+**Otlet**, is a zero-dependency, pure-python wrapper for the PyPI JSON Web API. It was created mainly for
+use with the `otlet-cli  <https://pypi.org/project/otlet-cli/>`_ tool, but it also works great as a standalone module.
+
+Download
+========
+
+You can download the Otlet wrapper by running::
+
+   pip install -U otlet
+
+You can also download the CLI tool with::
+
+   pip install -U otlet[cli]
+
+or::
+
+   pip install -U otlet-cli
 
 .. toctree::
    :maxdepth: 2

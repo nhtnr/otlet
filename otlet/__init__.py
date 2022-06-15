@@ -24,9 +24,8 @@ CLI tool and wrapper for the PyPI JSON web API
 # OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
-from .types import *
 from .api import *
 from .exceptions import *
 
-__version__ = "0.7.0"
+__version__ = "1.0.0a1"
 __license__ = "MIT"

@@ -105,7 +105,7 @@ class PackageInfoObject(PackageBase):
     :vartype download_url: Optional[str]
 
     :var downloads: Legacy attribute (deprecated)
-    :vartype downloads: :class:`types.SimpleNamespace`
+    :vartype downloads: Dict[str, int]
 
     :var home_page: URL for package's home page
     :vartype home_page: Optional[str]
@@ -135,7 +135,7 @@ class PackageInfoObject(PackageBase):
     :vartype project_url: str
 
     :var project_urls: Additional relevant URLs for the package
-    :vartype project_urls: Optional[:class:`types.SimpleNamespace`]
+    :vartype project_urls: Dict[str, str]
 
     :var release_url: URL for current release version of the package
     :vartype release_url: str
@@ -174,11 +174,10 @@ class PackageInfoObject(PackageBase):
         for k,v in self.http_response["info"].items():
             if v == "":
                 self.__dict__[k] = None
-            elif k == "downloads" or k == "project_urls":
-                self.__dict__[k] = SimpleNamespace(**v) if v else None
             elif k == "version":
                 self.__dict__[k] = parse(v)
-            self.__dict__[k] = v
+            else:
+                self.__dict__[k] = v
 
 
 @dataclass

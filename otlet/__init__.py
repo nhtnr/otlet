@@ -27,5 +27,5 @@ CLI tool and wrapper for the PyPI JSON web API
 from .api import *
 from .exceptions import *
 
-__version__ = "1.0.0a2"
+__version__ = "1.0.0a3"
 __license__ = "MIT"

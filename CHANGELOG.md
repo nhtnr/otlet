@@ -2,6 +2,7 @@
 
 - stable release
 - split CLI into seperate package, 'otlet-cli'
+- add otlet.DEPENDENCY_ENVIRONMENT_MARKERS
 - remove all deprecated functions
         - otlet.api.get_release_full()
         - otlet.api.get_release_info()

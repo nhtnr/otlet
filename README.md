@@ -6,7 +6,7 @@
 [![Documentation Status](https://readthedocs.org/projects/otlet/badge/?version=latest)](https://otlet.readthedocs.io/en/latest/?badge=latest)
 [![license-mit](https://img.shields.io/pypi/l/otlet)](https://github.com/nhtnr/otlet/blob/main/LICENSE)
 [![build-workflow](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml/badge.svg?branch=main&event=push)](https://github.com/nhtnr/otlet/actions/workflows/pytest.yml)
-[![github-issues](https://img.shields.io/github/issues/nhtnr/otlet)](https://github.com/astro-devel/nhtnr/otlet)
+[![github-issues](https://img.shields.io/github/issues/nhtnr/otlet)](https://github.com/nhtnr/otlet/issues)
 [![github-pull-requests](https://img.shields.io/github/issues-pr/nhtnr/otlet)](https://github.com/nhtnr/otlet/pulls)
 ![pypi-python-versions](https://img.shields.io/pypi/pyversions/otlet)
 [![pypi-package-version](https://img.shields.io/pypi/v/otlet)](https://pypi.org/project/otlet/)

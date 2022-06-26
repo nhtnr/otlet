@@ -34,7 +34,7 @@ from urllib.error import HTTPError
 from typing import Any, Optional, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
-from .packaging.version import parse
+from .packaging.version import Version, parse
 from .exceptions import PyPIPackageNotFound, PyPIPackageVersionNotFound
 
 
@@ -140,8 +140,8 @@ class PackageInfoObject(PackageBase):
     :var release_url: URL for current release version of the package
     :vartype release_url: str
 
-    :var requires_dist: List of the package's dependencies
-    :vartype requires_dist: Optional[List[str]]
+    :var requires_dist: A dictionary containing the packages dependencies and their constraints
+    :vartype requires_dist: Optional[Dict[str, Dict[str, Optional[str]]]]
 
     :var requires_python: Python version constraints
     :vartype requires_python: Optional[str]
@@ -176,8 +176,42 @@ class PackageInfoObject(PackageBase):
                 self.__dict__[k] = None
             elif k == "version":
                 self.__dict__[k] = parse(v)
+            elif k == "requires_dist":
+                _parsed = self._parse_dependencies(v)
+                if _parsed:
+                    _obj = [PackageDependencyObject(k, v["version_constraints"], v["markers"]) for k,v in _parsed.items()]
+                    self.__dict__[k] = _obj
+                else:
+                    self.__dict__[k] = None
             else:
                 self.__dict__[k] = v
+    
+    @staticmethod
+    def _parse_dependencies(reqs: list) -> Optional[dict]:
+        if not reqs:
+            return None
+
+        # fmt: off
+        packages = dict()
+        for req in reqs:
+            req_split = req.split(';')
+            _pkg = req_split[0].split() # package name
+            pkg = _pkg[0]
+            pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
+            pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
+            packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}}
+            if not pkgq:
+                continue
+            for constraint in pkgq:
+                c = re.sub(r'[()\s"]', '', constraint.strip())
+                m = re.match(r"(\w+)([!=<>]+)(\S+)", c)
+                if m.group(1) in ["python_version", "python_full_version", "implementation_version"]:
+                    packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3)
+                else:
+                    packages[pkg]["markers"][m.group(1)] =  m.group(3)
+        # fmt: on
+
+        return packages
 
 
 @dataclass
@@ -352,30 +386,64 @@ class PackageObject(PackageBase):
             self.releases[parse(k)] = URLReleaseObject.construct(v[0])
 
     @property
-    def canonicalized_name(self):
+    def canonicalized_name(self) -> str:
         return (
             re.compile(r"[-_.]+").sub("-", self.info.name).lower()
         )  # stolen from packaging module
 
     @property
-    def version(self):
+    def version(self) -> str:
         return self.info.version.__str__()
 
     @property
-    def release_name(self):
+    def release_name(self) -> str:
         return f"{self.name} v{self.version}"
 
     @property
-    def upload_time(self):
+    def upload_time(self) -> Optional[datetime.datetime]:
         try:
             return self.releases[self.info.version].upload_time
         except KeyError:
             return None
+    
+    @property
+    def dependencies(self) -> dict:
+        return self.info.requires_dist
 
+class PackageDependencyObject(PackageObject):
+    """PackageDependencyObject"""
+    def __init__(self, 
+                package_name: str, 
+                version_constraints: Optional[str] = None,
+                markers: Optional[dict] = None
+    ) -> None:
+        self.name = package_name
+        self.version_constraints = re.sub('[)(]', '', version_constraints).split(',') if version_constraints else None
+        self.markers = markers
+        self.is_populated = False
+    
+    def __repr__(self) -> str:
+        return f"PackageDependencyObject({self.name})"
+
+    def populate(self) -> None:
+        super().__init__(self.name, self.get_latest_possible_version())
+        self.is_populated = True
+    
+    def get_latest_possible_version(self, allow_pre = False) -> Optional[Version]:
+        """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""
+        _j = PackageObject(self.name)
+        for i in _j.releases.__reversed__():
+            if not self.version_constraints:
+                return i
+            if i.fits_constraints(self.version_constraints) and not (not allow_pre and i.is_prerelease):
+                return i
+        return None
+    
 
 __all__ = [
     "PackageInfoObject",
     "URLReleaseObject",
     "PackageObject",
+    "PackageDependencyObject",
     "PackageVulnerabilitiesObject",
 ]

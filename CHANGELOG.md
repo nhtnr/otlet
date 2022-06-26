@@ -12,6 +12,12 @@
         - in doing so, removed redundant 'otlet.api.get_package()' func
 - remove 'otlet.api.download_dist()'
         - moved to CLI, no need for it to be in the API, really
+- add "otlet.packaging.version.Version.fits_constraints()" method
+        - checks to see if a particular version fits within certain version constraints
+                - i.e. 'Version("1.0.0").fits_constraints('(>=0.9.0, <1.1.0)')' will evaluate to 'True'
+- add "otlet.api.PackageDependencyObject"
+        - subclass of "otlet.api.PackageObject"
+        - represents a dependency for a given package
 
 # 0.6.0
 

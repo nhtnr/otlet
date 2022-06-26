@@ -205,10 +205,10 @@ class PackageInfoObject(PackageBase):
             for constraint in pkgq:
                 c = re.sub(r'[()\s"]', '', constraint.strip())
                 m = re.match(r"(\w+)([!=<>]+)(\S+)", c)
-                if m.group(1) in ["python_version", "python_full_version", "implementation_version"]:
-                    packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3)
+                if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
+                    packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
                 else:
-                    packages[pkg]["markers"][m.group(1)] =  m.group(3)
+                    packages[pkg]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
 
         return packages
@@ -393,7 +393,7 @@ class PackageObject(PackageBase):
 
     @property
     def version(self) -> str:
-        return self.info.version.__str__()
+        return self.info.version.__str__() # type: ignore
 
     @property
     def release_name(self) -> str:
@@ -402,13 +402,13 @@ class PackageObject(PackageBase):
     @property
     def upload_time(self) -> Optional[datetime.datetime]:
         try:
-            return self.releases[self.info.version].upload_time
+            return self.releases[self.info.version].upload_time # type: ignore
         except KeyError:
             return None
     
     @property
     def dependencies(self) -> dict:
-        return self.info.requires_dist
+        return self.info.requires_dist # type: ignore
 
 class PackageDependencyObject(PackageObject):
     """PackageDependencyObject"""

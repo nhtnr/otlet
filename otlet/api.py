@@ -195,8 +195,11 @@ class PackageInfoObject(PackageBase):
         packages = dict()
         for req in reqs:
             req_split = req.split(';')
+
             _pkg = req_split[0].split() # package name
+            _pkg = re.split(r'\[[^\]]*\]', _pkg[0])
             pkg = _pkg[0]
+
             pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
             packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}}
@@ -425,14 +428,19 @@ class PackageDependencyObject(PackageObject):
     def __repr__(self) -> str:
         return f"PackageDependencyObject({self.name})"
 
-    def populate(self) -> None:
+    def populate(self, recursion_depth = 0) -> None:
+        print(self)
         super().__init__(self.name, self.get_latest_possible_version())
+        if recursion_depth:
+            if self.dependencies:
+                for j in self.dependencies:
+                    j.populate(recursion_depth-1)
         self.is_populated = True
     
     def get_latest_possible_version(self, allow_pre = False) -> Optional[Version]:
         """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""
         _j = PackageObject(self.name)
-        for i in _j.releases.__reversed__():
+        for i in reversed(_j.releases):
             if not self.version_constraints:
                 return i
             if i.fits_constraints(self.version_constraints) and not (not allow_pre and i.is_prerelease):

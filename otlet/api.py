@@ -429,7 +429,6 @@ class PackageDependencyObject(PackageObject):
         return f"PackageDependencyObject({self.name})"
 
     def populate(self, recursion_depth = 0) -> None:
-        print(self)
         super().__init__(self.name, self.get_latest_possible_version())
         if recursion_depth:
             if self.dependencies:

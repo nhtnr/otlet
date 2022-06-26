@@ -197,21 +197,25 @@ class PackageInfoObject(PackageBase):
             req_split = req.split(';')
 
             _pkg = req_split[0].split() # package name
-            _pkg = re.split(r'\[[^\]]*\]', _pkg[0])
-            pkg = _pkg[0]
+            _p_match = re.match(r'(\w+)(\[[^\]]*\])(\S+)', _pkg[0]) # match for extra grabs, if any
+            if not _p_match:
+                pkg = _pkg[0], None
+            else:
+                pkg = _p_match.group(1), re.sub(r'[\]\[]', '', _p_match.group(2))
 
+            # TODO: implement logic for if package requires an extra
             pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
-            packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}}
+            packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}}
             if not pkgq:
                 continue
             for constraint in pkgq:
                 c = re.sub(r'[()\s"]', '', constraint.strip())
                 m = re.match(r"(\w+)([!=<>]+)(\S+)", c)
                 if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
-                    packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
+                    packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
                 else:
-                    packages[pkg]["markers"][m.group(1)] =  m.group(3) # type: ignore
+                    packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
 
         return packages

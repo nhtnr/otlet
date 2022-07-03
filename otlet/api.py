@@ -34,8 +34,9 @@ from urllib.error import HTTPError
 from typing import Any, Optional, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
+from .exceptions import OtletError
 from .packaging.version import Version, parse
-from .exceptions import PyPIPackageNotFound, PyPIPackageVersionNotFound
+from .exceptions import *
 
 
 class PackageBase(object):
@@ -161,7 +162,7 @@ class PackageInfoObject(PackageBase):
 
     def __init__(
         self, 
-        package_name: str, 
+        package_name: str,
         release: Optional[str] = None, 
         perform_request: bool = True, 
         http_response: Dict[str, Any] = None
@@ -169,7 +170,10 @@ class PackageInfoObject(PackageBase):
         if perform_request:
             super().__init__(package_name, release)
         else:
-            self.http_response = http_response
+            if http_response:
+                self.http_response = http_response
+            else:
+                raise OtletError("If not performing a new HTTP request, you must supply a dictionary-parsed HTTPResponse into 'http_response'.")
 
         for k,v in self.http_response["info"].items():
             if v == "":

@@ -25,8 +25,15 @@ Custom exceptions used by otlet
 # OR OTHER DEALINGS IN THE SOFTWARE.
 
 
+class OtletError(Exception):
+    """Base class for all Otlet related exceptions."""
+
+    def __init__(self, message: str = None) -> None:
+        super().__init__(message)
+
+
 class PyPIAPIError(Exception):
-    """Generic error pertaining to the PyPI API, not an otlet error."""
+    """Base class for all PyPI-related exceptions."""
 
     def __init__(self, message: str = None) -> None:
         super().__init__(message)

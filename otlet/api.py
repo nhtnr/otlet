@@ -222,7 +222,7 @@ class PackageInfoObject(PackageBase):
             if not pkgq:
                 continue
             for constraint in pkgq:
-                c = re.sub(r'[()\s"]', '', constraint.strip())
+                c = re.sub(r'[()\s"\']', '', constraint.strip())
                 m = re.match(r"(\w+)([!=<>]+)(\S+)", c)
                 if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
                     packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore

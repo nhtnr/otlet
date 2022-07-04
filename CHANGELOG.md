@@ -4,7 +4,7 @@
 - split CLI into seperate package, 'otlet-cli'
 - add otlet.DEPENDENCY_ENVIRONMENT_MARKERS
 
-## Modified Objects / Methods
+### Modified Objects / Methods
 <hr width=300 style="margin-left: 0;">
 
 ### ```PackageObject```
@@ -14,7 +14,7 @@
 - converted from dataclass to callable object
 
 
-## New Objects / Methods
+### New Objects / Methods
 <hr width=300 style="margin-left: 0;">
 
 ### ```otlet.api.PackageBase```
@@ -32,7 +32,7 @@
 ### ```otlet.PackageObject```
 - added ```dependencies``` and ```dependency_count``` properties
 
-## Removed Objects / Methods
+### Removed Objects / Methods
 <hr width=300 style="margin-left: 0;">
 
 - ```otlet.api.get_release_full()```

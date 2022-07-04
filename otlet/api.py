@@ -48,7 +48,7 @@ class PackageBase(object):
         _parsed_name = re.compile(r'[\[\]]').sub(',', package_name).strip(',').split(',')
         self.name = _parsed_name[0]
         if len(_parsed_name) == 2:
-            self.extras = _parsed_name[1]
+            self.extras = [_parsed_name[1]]
         else:
             self.extras = []
 
@@ -212,11 +212,10 @@ class PackageInfoObject(PackageBase):
             _pkg = req_split[0].split() # package name
             _p_match = re.match(r'(\w+)(\[[^\]]*\])(\S+)', _pkg[0]) # match for extra grabs, if any
             if not _p_match:
-                pkg = _pkg[0], None
+                pkg = _pkg[0], None # type: ignore
             else:
-                pkg = _p_match.group(1), re.sub(r'[\]\[]', '', _p_match.group(2))
+                pkg = _p_match.group(1), re.sub(r'[\]\[]', '', _p_match.group(2)) # type: ignore
 
-            # TODO: implement logic for if package requires an extra
             pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
             packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}}
@@ -437,9 +436,9 @@ class PackageObject(PackageBase):
     
     @property
     def dependency_count(self) -> int:
-        if not self.info.requires_dist:
+        if not self.info.requires_dist: # type: ignore
             return 0
-        return len(self.info.requires_dist)
+        return len(self.info.requires_dist) # type: ignore
 
 class PackageDependencyObject(PackageObject):
     """PackageDependencyObject"""

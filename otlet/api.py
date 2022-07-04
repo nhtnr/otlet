@@ -44,7 +44,14 @@ class PackageBase(object):
     Base for :class:`~PackageObject` and :class:`~PackageInfoObject`. Should not be directly instantiated.
     """
     def __init__(self, package_name: str, release: Optional[str] = None) -> None:
-        self.name = package_name
+        # parse package_name for extras
+        _parsed_name = re.compile(r'[\[\]]').sub(',', package_name).strip(',').split(',')
+        self.name = _parsed_name[0]
+        if len(_parsed_name) == 2:
+            self.extras = _parsed_name[1]
+        else:
+            self.extras = []
+
         self.release = release
         self._http_response = self._attempt_request()
         self.http_response = json.loads(self._http_response.readlines()[0].decode())
@@ -163,6 +170,7 @@ class PackageInfoObject(PackageBase):
     def __init__(
         self, 
         package_name: str,
+        package_extras: list = [],
         release: Optional[str] = None, 
         perform_request: bool = True, 
         http_response: Dict[str, Any] = None
@@ -181,7 +189,8 @@ class PackageInfoObject(PackageBase):
             elif k == "version":
                 self.__dict__[k] = parse(v)
             elif k == "requires_dist":
-                _parsed = self._parse_dependencies(v)
+                _parsed = self._parse_dependencies(v, package_extras)
+                self._parsed_deps = _parsed
                 if _parsed:
                     _obj = [PackageDependencyObject(k, v["version_constraints"], v["markers"]) for k,v in _parsed.items()]
                     self.__dict__[k] = _obj
@@ -191,7 +200,7 @@ class PackageInfoObject(PackageBase):
                 self.__dict__[k] = v
     
     @staticmethod
-    def _parse_dependencies(reqs: list) -> Optional[dict]:
+    def _parse_dependencies(reqs: list, extras: list) -> Optional[dict]:
         if not reqs:
             return None
 
@@ -218,9 +227,14 @@ class PackageInfoObject(PackageBase):
                 m = re.match(r"(\w+)([!=<>]+)(\S+)", c)
                 if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
                     packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
-                else:
-                    packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
+                    continue
+                packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
+
+        for k,v in packages.copy().items():
+            # this is crappy opt, change asap
+            if v["markers"].get("extra") and v["markers"]["extra"] not in extras:
+                packages.pop(k)
 
         return packages
 
@@ -382,7 +396,7 @@ class PackageObject(PackageBase):
 
     def __init__(self, package_name: str, release: Optional[str] = None) -> None:
         super().__init__(package_name, release)
-        self.info = PackageInfoObject(package_name, release, False, self.http_response)
+        self.info = PackageInfoObject(package_name, self.extras, release, False, self.http_response)
         self.last_serial = self.http_response["last_serial"]
         self.releases = dict()
         self.urls = [URLReleaseObject.construct(_) for _ in self.http_response["urls"]]
@@ -420,6 +434,12 @@ class PackageObject(PackageBase):
     @property
     def dependencies(self) -> dict:
         return self.info.requires_dist # type: ignore
+    
+    @property
+    def dependency_count(self) -> int:
+        if not self.info.requires_dist:
+            return 0
+        return len(self.info.requires_dist)
 
 class PackageDependencyObject(PackageObject):
     """PackageDependencyObject"""

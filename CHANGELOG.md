@@ -3,21 +3,43 @@
 - stable release
 - split CLI into seperate package, 'otlet-cli'
 - add otlet.DEPENDENCY_ENVIRONMENT_MARKERS
-- remove all deprecated functions
-        - otlet.api.get_release_full()
-        - otlet.api.get_release_info()
-        - otlet.api.get_package_info()
-- convert "PackageObject", and "PackageInfoObject" from dataclasses to instantiable objects
-        - also moved from types.py to api.py
-        - in doing so, removed redundant 'otlet.api.get_package()' func
-- remove 'otlet.api.download_dist()'
-        - moved to CLI, no need for it to be in the API, really
-- add "otlet.packaging.version.Version.fits_constraints()" method
-        - checks to see if a particular version fits within certain version constraints
-                - i.e. 'Version("1.0.0").fits_constraints('(>=0.9.0, <1.1.0)')' will evaluate to 'True'
-- add "otlet.api.PackageDependencyObject"
-        - subclass of "otlet.api.PackageObject"
-        - represents a dependency for a given package
+
+## Modified Objects / Methods
+<hr width=300 style="margin-left: 0;">
+
+### ```PackageObject```
+- converted from dataclass to callable object
+
+### ```PackageInfoObject```
+- converted from dataclass to callable object
+
+
+## New Objects / Methods
+<hr width=300 style="margin-left: 0;">
+
+### ```otlet.api.PackageBase```
+- base class for PackageObject and PackageInfoObject
+
+### ```otlet.api.PackageDependencyObject```
+- subclass of "otlet.api.PackageObject"
+- represents a dependency for a given package
+
+### ```otlet.packaging.version.Version```
+- added ```fits_constraints()``` method
+    - checks to see if a particular version fits within certain version constraints
+    - i.e. 'Version("1.0.0").fits_constraints('(>=0.9.0, <1.1.0)')' will evaluate to 'True'
+
+### ```otlet.PackageObject```
+- added ```dependencies``` and ```dependency_count``` properties
+
+## Removed Objects / Methods
+<hr width=300 style="margin-left: 0;">
+
+- ```otlet.api.get_release_full()```
+- ```otlet.api.get_release_info()```
+- ```otlet.api.get_package()```
+- ```otlet.api.get_package_info()```
+- ```otlet.api.download_dist()```
 
 # 0.6.0
 

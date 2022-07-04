@@ -2,7 +2,6 @@
 
 - stable release
 - split CLI into seperate package, 'otlet-cli'
-- add otlet.DEPENDENCY_ENVIRONMENT_MARKERS
 
 ### Modified Objects / Methods
 <hr width=300 style="margin-left: 0;">
@@ -31,6 +30,9 @@
 
 ### ```otlet.PackageObject```
 - added ```dependencies``` and ```dependency_count``` properties
+
+### ```otlet.markers.DEPENDENCY_ENVIRONMENT_MARKERS```
+- holds respective values for each environment marker for the current system as per PEP 508
 
 ### Removed Objects / Methods
 <hr width=300 style="margin-left: 0;">

@@ -34,6 +34,7 @@ from urllib.error import HTTPError
 from typing import Any, Optional, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
+from .markers import DEPENDENCY_ENVIRONMENT_MARKERS
 from .exceptions import OtletError
 from .packaging.version import Version, parse
 from .exceptions import *
@@ -218,7 +219,7 @@ class PackageInfoObject(PackageBase):
 
             pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
-            packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}}
+            packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}, "extra": None}
             if not pkgq:
                 continue
             for constraint in pkgq:
@@ -227,12 +228,35 @@ class PackageInfoObject(PackageBase):
                 if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
                     packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
                     continue
+                if m.group(1) == "extra":
+                    packages[pkg[0]]["extra"] = m.group(3)
+                    continue
                 packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
 
         for k,v in packages.copy().items():
             # this is crappy opt, change asap
-            if v["markers"].get("extra") and v["markers"]["extra"] not in extras:
+            if v.get("extra") and v["extra"] not in extras:
+                packages.pop(k)
+        
+        _pkg_wmarks = dict()
+        for k in packages:
+            _pkg_wmarks[k] = []
+        for k,v in packages.copy().items():
+            for _k,_v in v["markers"].items():
+                if _k in ["python_version", "python_full_version", "implementation_version"]:
+                    if DEPENDENCY_ENVIRONMENT_MARKERS[_k].fits_constraints(re.sub('[)(]', '', _v).split(',')):
+                        _pkg_wmarks[k].append(True)
+                        print (f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}")
+                    else: 
+                        _pkg_wmarks[k].append(False)
+                if _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
+                    _pkg_wmarks[k].append(True)
+                    print (f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}")
+                else:
+                    _pkg_wmarks[k].append(False)
+        for k,v in _pkg_wmarks.items():
+            if not all(v):
                 packages.pop(k)
 
         return packages

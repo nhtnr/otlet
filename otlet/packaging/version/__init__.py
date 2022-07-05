@@ -311,12 +311,12 @@ class Version(_BaseVersion):
             parts.append(f"+{self.local}")
 
         return "".join(parts)
-    
+
     def fits_constraints(self, constraints: list) -> bool:
-        _c = [] # type: ignore
+        _c = []  # type: ignore
         for i in constraints:
-            _h = re.match(r'([=<>!]+)(\S+)', i)
-            exec(f"_c.append(self {_h.group(1)} self.__class__(\"{_h.group(2)}\"))") # type: ignore
+            _h = re.match(r"([=<>!]+)(\S+)", i)
+            exec(f'_c.append(self {_h.group(1)} self.__class__("{_h.group(2)}"))')  # type: ignore
         return not any([not _ for _ in _c])
 
     @property

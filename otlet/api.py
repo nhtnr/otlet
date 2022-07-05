@@ -44,9 +44,12 @@ class PackageBase(object):
     """
     Base for :class:`~PackageObject` and :class:`~PackageInfoObject`. Should not be directly instantiated.
     """
+
     def __init__(self, package_name: str, release: Optional[str] = None) -> None:
         # parse package_name for extras
-        _parsed_name = re.compile(r'[\[\]]').sub(',', package_name).strip(',').split(',')
+        _parsed_name = (
+            re.compile(r"[\[\]]").sub(",", package_name).strip(",").split(",")
+        )
         self.name = _parsed_name[0]
         if len(_parsed_name) == 2:
             self.extras = [_parsed_name[1]]
@@ -72,6 +75,7 @@ class PackageBase(object):
             else:
                 raise err
         return res
+
 
 class PackageInfoObject(PackageBase):
     """
@@ -169,12 +173,12 @@ class PackageInfoObject(PackageBase):
     """
 
     def __init__(
-        self, 
+        self,
         package_name: str,
         package_extras: list = [],
-        release: Optional[str] = None, 
-        perform_request: bool = True, 
-        http_response: Dict[str, Any] = None
+        release: Optional[str] = None,
+        perform_request: bool = True,
+        http_response: Dict[str, Any] = None,
     ) -> None:
         if perform_request:
             super().__init__(package_name, release)
@@ -182,9 +186,11 @@ class PackageInfoObject(PackageBase):
             if http_response:
                 self.http_response = http_response
             else:
-                raise OtletError("If not performing a new HTTP request, you must supply a dictionary-parsed HTTPResponse into 'http_response'.")
+                raise OtletError(
+                    "If not performing a new HTTP request, you must supply a dictionary-parsed HTTPResponse into 'http_response'."
+                )
 
-        for k,v in self.http_response["info"].items():
+        for k, v in self.http_response["info"].items():
             if v == "":
                 self.__dict__[k] = None
             elif k == "version":
@@ -193,13 +199,18 @@ class PackageInfoObject(PackageBase):
                 _parsed = self._parse_dependencies(v, package_extras)
                 self._parsed_deps = _parsed
                 if _parsed:
-                    _obj = [PackageDependencyObject(k, v["version_constraints"], v["markers"]) for k,v in _parsed.items()]
+                    _obj = [
+                        PackageDependencyObject(
+                            k, v["version_constraints"], v["markers"]
+                        )
+                        for k, v in _parsed.items()
+                    ]
                     self.__dict__[k] = _obj
                 else:
                     self.__dict__[k] = None
             else:
                 self.__dict__[k] = v
-    
+
     @staticmethod
     def _parse_dependencies(reqs: list, extras: list) -> Optional[dict]:
         if not reqs:
@@ -234,28 +245,38 @@ class PackageInfoObject(PackageBase):
                 packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
 
-        for k,v in packages.copy().items():
+        for k, v in packages.copy().items():
             # this is crappy opt, change asap
             if v.get("extra") and v["extra"] not in extras:
                 packages.pop(k)
-        
+
         _pkg_wmarks = dict()
         for k in packages:
             _pkg_wmarks[k] = []
-        for k,v in packages.copy().items():
-            for _k,_v in v["markers"].items():
-                if _k in ["python_version", "python_full_version", "implementation_version"]:
-                    if DEPENDENCY_ENVIRONMENT_MARKERS[_k].fits_constraints(re.sub('[)(]', '', _v).split(',')):
+        for k, v in packages.copy().items():
+            for _k, _v in v["markers"].items():
+                if _k in [
+                    "python_version",
+                    "python_full_version",
+                    "implementation_version",
+                ]:
+                    if DEPENDENCY_ENVIRONMENT_MARKERS[_k].fits_constraints(
+                        re.sub("[)(]", "", _v).split(",")
+                    ):
                         _pkg_wmarks[k].append(True)
-                        print (f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}")
-                    else: 
+                        print(
+                            f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}"
+                        )
+                    else:
                         _pkg_wmarks[k].append(False)
                 if _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
                     _pkg_wmarks[k].append(True)
-                    print (f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}")
+                    print(
+                        f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}"
+                    )
                 else:
                     _pkg_wmarks[k].append(False)
-        for k,v in _pkg_wmarks.items():
+        for k, v in _pkg_wmarks.items():
             if not all(v):
                 packages.pop(k)
 
@@ -391,6 +412,7 @@ class PackageVulnerabilitiesObject:
             vuln_dict["source"],
         )
 
+
 class PackageObject(PackageBase):
     """
     Contains full API response data
@@ -419,14 +441,16 @@ class PackageObject(PackageBase):
 
     def __init__(self, package_name: str, release: Optional[str] = None) -> None:
         super().__init__(package_name, release)
-        self.info = PackageInfoObject(package_name, self.extras, release, False, self.http_response)
+        self.info = PackageInfoObject(
+            package_name, self.extras, release, False, self.http_response
+        )
         self.last_serial = self.http_response["last_serial"]
         self.releases = dict()
         self.urls = [URLReleaseObject.construct(_) for _ in self.http_response["urls"]]
         self.vulnerabilities = [
-                PackageVulnerabilitiesObject.construct(_)
-                for _ in self.http_response["vulnerabilities"]
-            ] or None
+            PackageVulnerabilitiesObject.construct(_)
+            for _ in self.http_response["vulnerabilities"]
+        ] or None
 
         for k, v in self.http_response["releases"].items():
             if not v:
@@ -441,7 +465,7 @@ class PackageObject(PackageBase):
 
     @property
     def version(self) -> str:
-        return self.info.version.__str__() # type: ignore
+        return self.info.version.__str__()  # type: ignore
 
     @property
     def release_name(self) -> str:
@@ -450,53 +474,62 @@ class PackageObject(PackageBase):
     @property
     def upload_time(self) -> Optional[datetime.datetime]:
         try:
-            return self.releases[self.info.version].upload_time # type: ignore
+            return self.releases[self.info.version].upload_time  # type: ignore
         except KeyError:
             return None
-    
+
     @property
     def dependencies(self) -> dict:
-        return self.info.requires_dist # type: ignore
-    
+        return self.info.requires_dist  # type: ignore
+
     @property
     def dependency_count(self) -> int:
-        if not self.info.requires_dist: # type: ignore
+        if not self.info.requires_dist:  # type: ignore
             return 0
-        return len(self.info.requires_dist) # type: ignore
+        return len(self.info.requires_dist)  # type: ignore
+
 
 class PackageDependencyObject(PackageObject):
     """PackageDependencyObject"""
-    def __init__(self, 
-                package_name: str, 
-                version_constraints: Optional[str] = None,
-                markers: Optional[dict] = None
+
+    def __init__(
+        self,
+        package_name: str,
+        version_constraints: Optional[str] = None,
+        markers: Optional[dict] = None,
     ) -> None:
         self.name = package_name
-        self.version_constraints = re.sub('[)(]', '', version_constraints).split(',') if version_constraints else None
+        self.version_constraints = (
+            re.sub("[)(]", "", version_constraints).split(",")
+            if version_constraints
+            else None
+        )
         self.markers = markers
         self.is_populated = False
-    
+
     def __repr__(self) -> str:
         return f"PackageDependencyObject({self.name})"
 
-    def populate(self, recursion_depth = 0) -> None:
+    def populate(self, recursion_depth=0) -> None:
         super().__init__(self.name, self.get_latest_possible_version())
         if recursion_depth:
             if self.dependencies:
                 for j in self.dependencies:
-                    j.populate(recursion_depth-1)
+                    j.populate(recursion_depth - 1)
         self.is_populated = True
-    
-    def get_latest_possible_version(self, allow_pre = False) -> Optional[Version]:
+
+    def get_latest_possible_version(self, allow_pre=False) -> Optional[Version]:
         """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""
         _j = PackageObject(self.name)
         for i in reversed(_j.releases):
             if not self.version_constraints:
                 return i
-            if i.fits_constraints(self.version_constraints) and not (not allow_pre and i.is_prerelease):
+            if i.fits_constraints(self.version_constraints) and not (
+                not allow_pre and i.is_prerelease
+            ):
                 return i
         return None
-    
+
 
 __all__ = [
     "PackageInfoObject",

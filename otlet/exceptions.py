@@ -31,6 +31,10 @@ class OtletError(Exception):
     def __init__(self, message: str = None) -> None:
         super().__init__(message)
 
+class NotPopulatedError(Exception):
+    """Raised when a user tries to call a PackageDependencyObject property that requires population."""
+    def __init__(self, property_name: str) -> None:
+        super().__init__(f"Object must first be populated using the 'populate()' method before accessing the '{property_name}' property.")
 
 class PyPIAPIError(Exception):
     """Base class for all PyPI-related exceptions."""

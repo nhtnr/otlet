@@ -35,10 +35,9 @@ from typing import Any, Optional, Dict, List
 from types import SimpleNamespace
 from dataclasses import dataclass
 from .markers import DEPENDENCY_ENVIRONMENT_MARKERS
-from .exceptions import OtletError
+from .exceptions import NotPopulatedError, OtletError
 from .packaging.version import Version, parse
 from .exceptions import *
-
 
 class PackageBase(object):
     """
@@ -212,7 +211,7 @@ class PackageInfoObject(PackageBase):
                 self.__dict__[k] = v
 
     @staticmethod
-    def _parse_dependencies(reqs: list, extras: list) -> Optional[dict]:
+    def _parse_dependencies(reqs: list, extras: list, disregard_extras=False, disregard_markers=False) -> Optional[dict]:
         if not reqs:
             return None
 
@@ -244,11 +243,11 @@ class PackageInfoObject(PackageBase):
                     continue
                 packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
-
-        for k, v in packages.copy().items():
-            # this is crappy opt, change asap
-            if v.get("extra") and v["extra"] not in extras:
-                packages.pop(k)
+        if not disregard_extras:
+            for k, v in packages.copy().items():
+                # this is crappy opt, change asap
+                if v.get("extra") and v["extra"] not in extras:
+                    packages.pop(k)
 
         _pkg_wmarks = dict()
         for k in packages:
@@ -264,16 +263,10 @@ class PackageInfoObject(PackageBase):
                         re.sub("[)(]", "", _v).split(",")
                     ):
                         _pkg_wmarks[k].append(True)
-                        print(
-                            f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}"
-                        )
                     else:
                         _pkg_wmarks[k].append(False)
                 if _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
                     _pkg_wmarks[k].append(True)
-                    print(
-                        f"match ({k}) {_k}:{_v} == {DEPENDENCY_ENVIRONMENT_MARKERS[_k]}"
-                    )
                 else:
                     _pkg_wmarks[k].append(False)
         for k, v in _pkg_wmarks.items():
@@ -529,6 +522,39 @@ class PackageDependencyObject(PackageObject):
             ):
                 return i
         return None
+    
+    @property
+    def canonicalized_name(self) -> str:
+        if not self.is_populated:
+            raise NotPopulatedError('canonicalized_name')
+        return super().canonicalized_name
+    @property
+    def version(self) -> str:
+        if not self.is_populated:
+            raise NotPopulatedError('version')
+        return super().version
+    @property
+    def release_name(self) -> str:
+        if not self.is_populated:
+            raise NotPopulatedError('release_name')
+        return super().release_name
+    @property
+    def upload_time(self) -> Optional[datetime.datetime]:
+        if not self.is_populated:
+            raise NotPopulatedError('upload_time')
+        return super().upload_time
+    @property
+    def dependencies(self) -> dict:
+        if not self.is_populated:
+            raise NotPopulatedError('dependencies')
+        return super().dependencies
+    @property
+    def dependency_count(self) -> int:
+        if not self.is_populated:
+            raise NotPopulatedError('dependency_count')
+        return super().dependency_count
+    
+
 
 
 __all__ = [

@@ -1,8 +1,0 @@
-sphinxcontrib-applehelp; extra == 'dev'
-sphinxcontib-applehelp; extra == 'test'
-sphinxcontrib-devhelp[dev]; python_version >= 3.7
-sphinxcontrib-devhelp[testing]
-sphinxcontrib-jsmath
-sphinxcontrib-htmlhelp (>=2.0.0)
-sphinxcontrib-serializinghtml (>=1.1.5)
-sphinxcontrib-qthelp

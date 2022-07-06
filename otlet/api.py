@@ -514,7 +514,7 @@ class PackageDependencyObject(PackageObject):
     def get_latest_possible_version(self, allow_pre=False) -> Optional[Version]:
         """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""
         _j = PackageObject(self.name)
-        for i in reversed(_j.releases):
+        for i in reversed(list(_j.releases.keys())):
             if not self.version_constraints:
                 return i
             if i.fits_constraints(self.version_constraints) and not (

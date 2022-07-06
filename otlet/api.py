@@ -238,8 +238,8 @@ class PackageInfoObject(PackageBase):
                 if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
                     packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
                     continue
-                if m.group(1) == "extra":
-                    packages[pkg[0]]["extra"] = m.group(3)
+                if m.group(1) == "extra": # type: ignore
+                    packages[pkg[0]]["extra"] = m.group(3) # type: ignore
                     continue
                 packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
@@ -249,7 +249,7 @@ class PackageInfoObject(PackageBase):
                 if v.get("extra") and v["extra"] not in extras:
                     packages.pop(k)
 
-        _pkg_wmarks = dict()
+        _pkg_wmarks: dict = dict()
         for k in packages:
             _pkg_wmarks[k] = []
         for k, v in packages.copy().items():

@@ -13,7 +13,8 @@
 
 # Installing
 
-Otlet supports Python 3.7 and above, but at least Python 3.8 is recommended.
+Otlet supports Python 3.6 and above, but at least Python 3.8 is recommended.   
+*\*NOTE\*: Use with Python 3.6 has **ONE** required dependency (dataclasses)*
 
 The simplest method is installing otlet from PyPI using pip:  
   

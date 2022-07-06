@@ -71,6 +71,8 @@ class PackageBase(object):
                 if self.release is None:
                     raise PyPIPackageNotFound(self.name)
                 raise PyPIPackageVersionNotFound(self.name, self.release)
+            if err.code == 503:
+                raise PyPIServiceDown
             else:
                 raise err
         return res

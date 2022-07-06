@@ -4,7 +4,7 @@ import platform
 from .packaging.version import parse
 
 # 'implementation_version' impl as per PEP 508
-def format_full_version(info):
+def _format_full_version(info):
     version = "{0.major}.{0.minor}.{0.micro}".format(info)
     kind = info.releaselevel
     if kind != "final":
@@ -13,9 +13,9 @@ def format_full_version(info):
 
 
 if hasattr(sys, "implementation"):
-    IMPL_VER = format_full_version(sys.implementation.version)
+    _IMPL_VER = _format_full_version(sys.implementation.version)
 else:
-    IMPL_VER = "0"
+    _IMPL_VER = "0"
 
 DEPENDENCY_ENVIRONMENT_MARKERS = {
     "os_name": os.name,
@@ -28,5 +28,7 @@ DEPENDENCY_ENVIRONMENT_MARKERS = {
     "python_version": parse(".".join(platform.python_version_tuple()[:2])),
     "python_full_version": parse(platform.python_version()),
     "implementation_name": sys.implementation.name,
-    "implementation_version": parse(IMPL_VER),
+    "implementation_version": parse(_IMPL_VER),
 }
+
+__all__ = ["DEPENDENCY_ENVIRONMENT_MARKERS"]

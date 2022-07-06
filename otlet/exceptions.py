@@ -42,6 +42,11 @@ class PyPIAPIError(Exception):
     def __init__(self, message: str = None) -> None:
         super().__init__(message)
 
+class PyPIServiceDown(Exception):
+    """Raised when API returns a 503 status code."""
+
+    def __init__(self) -> None:
+        super().__init__("The PyPI backend service(s) that otlet relies on seem to be down/unstable at the moment. Please try again later or check 'https://status.python.org/' for more info.")
 
 class PyPIPackageNotFound(PyPIAPIError):
     """Raised when a specified package WAS NOT found in the package index."""
@@ -76,7 +81,10 @@ class HashDigestMatchError(Exception):
 
 
 __all__ = [
+    "OtletError",
+    "NotPopulatedError",
     "PyPIAPIError",
+    "PyPIServiceDown",
     "PyPIPackageNotFound",
     "PyPIPackageVersionNotFound",
     "HashDigestMatchError",

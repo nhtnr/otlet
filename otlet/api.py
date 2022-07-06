@@ -506,12 +506,13 @@ class PackageDependencyObject(PackageObject):
         return f"PackageDependencyObject({self.name})"
 
     def populate(self, recursion_depth=0) -> None:
-        super().__init__(self.name, self.get_latest_possible_version())
+        if not self.is_populated:
+            super().__init__(self.name, self.get_latest_possible_version())
+            self.is_populated = True
         if recursion_depth:
             if self.dependencies:
                 for j in self.dependencies:
                     j.populate(recursion_depth - 1)
-        self.is_populated = True
 
     def get_latest_possible_version(self, allow_pre=False) -> Optional[Version]:
         """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""

@@ -202,7 +202,7 @@ class PackageInfoObject(PackageBase):
                 if _parsed:
                     _obj = [
                         PackageDependencyObject(
-                            k, v["version_constraints"], v["markers"]
+                            k, v["version_constraints"], v["markers"], v["extras"]
                         )
                         for k, v in _parsed.items()
                     ]
@@ -231,19 +231,33 @@ class PackageInfoObject(PackageBase):
 
             pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
-            packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}, "extra": None}
+            packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}, "extras": []}
             if not pkgq:
                 continue
             for constraint in pkgq:
-                c = re.sub(r'[()\s"\']', '', constraint.strip())
-                m = re.match(r"(\w+)([!=<>]+)(\S+)", c)
-                if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
-                    packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
-                    continue
-                if m.group(1) == "extra": # type: ignore
-                    packages[pkg[0]]["extra"] = m.group(3) # type: ignore
-                    continue
-                packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
+                _c = constraint.strip().split(' or ')
+                if len(_c) == 1:
+                    c = re.sub(r'[()\s"\']', '', constraint.strip())
+                else:
+                    c = []
+                    for i in _c:
+                        c.append(re.sub(r'[()\s"\']', '', i.strip()))
+
+                _m = []
+                if isinstance(c, list):
+                    for i in c:
+                        _m.append(re.match(r"(\w+)([!=<>]+)(\S+)", i))
+                else:
+                    _m.append(re.match(r"(\w+)([!=<>]+)(\S+)", c))
+
+                for m in _m:
+                    if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
+                        packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
+                        continue
+                    if m.group(1) == "extra": # type: ignore
+                        packages[pkg[0]]["extras"].append(m.group(3)) # type: ignore
+                        continue
+                    packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
         if not disregard_extras:
             for k, v in packages.copy().items():
@@ -251,11 +265,15 @@ class PackageInfoObject(PackageBase):
                 if v.get("extra") and v["extra"] not in extras:
                     packages.pop(k)
 
+        # dictionary holding each package, with info on whether or not
+        # every marker constraint is met for a given package
         _pkg_wmarks: dict = dict()
         for k in packages:
             _pkg_wmarks[k] = []
         for k, v in packages.copy().items():
             for _k, _v in v["markers"].items():
+                # seperate if condition for python_version-like markers
+                # uses Version.fits_constraints() method to confirm constraint(s)
                 if _k in [
                     "python_version",
                     "python_full_version",
@@ -267,7 +285,8 @@ class PackageInfoObject(PackageBase):
                         _pkg_wmarks[k].append(True)
                     else:
                         _pkg_wmarks[k].append(False)
-                if _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
+                # regular if condition for all other markers
+                elif _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
                     _pkg_wmarks[k].append(True)
                 else:
                     _pkg_wmarks[k].append(False)
@@ -492,6 +511,7 @@ class PackageDependencyObject(PackageObject):
         package_name: str,
         version_constraints: Optional[str] = None,
         markers: Optional[dict] = None,
+        extras: Optional[list] = None
     ) -> None:
         self.name = package_name
         self.version_constraints = (
@@ -500,6 +520,7 @@ class PackageDependencyObject(PackageObject):
             else None
         )
         self.markers = markers
+        self.extras = extras
         self.is_populated = False
 
     def __repr__(self) -> str:

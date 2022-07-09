@@ -223,8 +223,7 @@ class PackageInfoObject(PackageBase):
             req_split = req.split(';')
 
             _pkg = req_split[0].split() # package name
-            #_p_match = re.match(r'(\w+)(\[[^\]]*\])([!=<>]+)(\S+)', _pkg[0]) # match for extra grabs, if any
-            _p_match = re.match(r'(\S+?)([!><=]+)(\S+)', _pkg[0])
+            _p_match = re.match(r'(\S+?)([!><=]+)(\S+)', _pkg[0]) # match for non-parenthetical version constraints (i.e. 'coverage[toml]>=5.0.2')
             if not _p_match:
                 pkg = _pkg[0]
                 pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
@@ -233,8 +232,9 @@ class PackageInfoObject(PackageBase):
                 pkg_vcon = _p_match.group(2) + _p_match.group(3) # dependency version constraint(s)
 
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
-            packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}, "extras": []}
-            if not pkgq:
+            if pkg not in packages.keys(): # check if pkg key has already been initialized, due to some packages stating their dependencies multiple times (i.e. 'argon2-cffi')
+                packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}, "extras": []}
+            if not pkgq: # if the dependency has no markers, then no additional parsing is needed
                 continue
             for constraint in pkgq:
                 _c = constraint.strip().split(' or ')

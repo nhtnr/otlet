@@ -80,7 +80,7 @@ class PackageBase(object):
 
 class PackageInfoObject(PackageBase):
     """
-    Contains data from API response key: 'info'
+    Object containing information about a given PyPI package. Data taken from the 'info' API response key.
 
     :param package_name: Name of PyPI package to query
     :type package_name: str
@@ -124,6 +124,9 @@ class PackageInfoObject(PackageBase):
     :var home_page: URL for package's home page
     :vartype home_page: Optional[str]
 
+    :var http_response: Dictionary containing information from the PyPI API response object.
+    :vartype http_response: Dict[str, Any]
+
     :var keywords: Keywords used to help searching for package
     :vartype keywords: Optional[str]
 
@@ -149,13 +152,13 @@ class PackageInfoObject(PackageBase):
     :vartype project_url: str
 
     :var project_urls: Additional relevant URLs for the package
-    :vartype project_urls: Dict[str, str]
+    :vartype project_urls: Optional[Dict[str, str]]
 
     :var release_url: URL for current release version of the package
     :vartype release_url: str
 
     :var requires_dist: A dictionary containing the packages dependencies and their constraints
-    :vartype requires_dist: Optional[Dict[str, Dict[str, Optional[str]]]]
+    :vartype requires_dist: Optional[Dict[:class:`~PackageDependencyObject`]]
 
     :var requires_python: Python version constraints
     :vartype requires_python: Optional[str]
@@ -170,7 +173,10 @@ class PackageInfoObject(PackageBase):
     :vartype yanked: bool
 
     :var yanked_reason: If this version has been yanked, reason as to why
-    :vartype yanked_reason: str
+    :vartype yanked_reason: Optional[str]
+
+    .. versionchanged:: 1.0.0
+        Converted from dataclass into callable object.
     """
 
     def __init__(
@@ -299,7 +305,7 @@ class PackageInfoObject(PackageBase):
 @dataclass
 class URLReleaseObject:
     """
-    Contains data from API response key: 'urls'
+    Object containing information about a specific release of a PyPI package. Data taken from either the 'urls' or 'releases' API response keys. Should not be directly called.
 
     :param comment_text: Legacy attribute (deprecated)
     :type comment_text: str
@@ -384,7 +390,7 @@ class URLReleaseObject:
 @dataclass
 class PackageVulnerabilitiesObject:
     """
-    Contains information about applicable package vulnerabilities, mainly sourced from 'https://osv.dev/'
+    Contains information about applicable package vulnerabilities, mainly sourced from 'https://osv.dev/'. Data taken from the 'vulnerabilities' API response key. Should not be directly called.
 
     :param aliases: Alias name(s) for this vulnerability, usually a 'CVE-ID'
     :type aliases: List[str]
@@ -428,7 +434,7 @@ class PackageVulnerabilitiesObject:
 
 class PackageObject(PackageBase):
     """
-    Contains full API response data
+    Object containing all relevant information for a given PyPI package.
 
     :param package_name: Name of PyPI package to query
     :type package_name: str
@@ -443,13 +449,16 @@ class PackageObject(PackageBase):
     :vartype last_serial: int
 
     :var releases: Dictionary containing all release objects for a given package
-    :vartype releases: Dict[Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`], :class:`~URLReleaseObject`]
+    :vartype releases: Dict[str, :class:`~URLReleaseObject`]
 
     :var urls: List of package releases for the given version
     :vartype urls: List[:class:`~URLReleaseObject`]
 
     :var vulnerabilities: List of objects containing vulnerability details for the given version, if applicable.
     :vartype vulnerabilities: Optional[List[:class:`~PackageVulnerabilitiesObject`]]
+
+    .. versionchanged:: 1.0.0
+        Converted from dataclass into callable object.
     """
 
     def __init__(self, package_name: str, release: Optional[str] = None) -> None:
@@ -469,10 +478,10 @@ class PackageObject(PackageBase):
             for k, v in self.http_response["releases"].items():
                 if not v:
                     continue
-                self.releases[parse(k)] = URLReleaseObject.construct(v[0])
+                self.releases[k] = URLReleaseObject.construct(v[0])
 
     def populate_dependencies(self, depth=0) -> None:
-        """Populate all dependencies for a package."""
+        """Populate all dependencies for the package."""
         for dep in self.dependencies:
             dep.populate(depth)
         return
@@ -510,7 +519,25 @@ class PackageObject(PackageBase):
 
 
 class PackageDependencyObject(PackageObject):
-    """PackageDependencyObject"""
+    """Object containing information about a specific dependency of a PyPI package. Should not be directly called.
+
+    :var name: Name of PyPI package
+    :vartype name: str
+
+    :var version_constraints: Version constraints that the given dependency must fulfill (i.e. '[">=3.1.2", "<4.0"]')
+    :vartype version_constraints: List[str]
+
+    :var markers: A dictionary containing all relevent environment markers pursuant to PEP 508 (excluding extras)
+    :vartype markers: Dict[str, str]
+
+    :var requires_extras: A list of extras that are required for the dependency to be installed with the package
+    :vartype requires_extras: List[str]
+
+    :var is_populated: Boolean value stating whether or not the object has been populated with info from PyPI
+    :vartype is_populated: bool
+
+    .. versionadded:: 1.0.0
+    """
 
     def __init__(
         self,
@@ -533,6 +560,7 @@ class PackageDependencyObject(PackageObject):
         return f"PackageDependencyObject({self.name})"
 
     def populate(self, recursion_depth=0) -> None:
+        """Populate the object with package information from PyPI."""
         if not self.is_populated:
             super().__init__(self.name, self.get_latest_possible_version())
             self.is_populated = True
@@ -545,12 +573,13 @@ class PackageDependencyObject(PackageObject):
         """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""
         _j = PackageObject(self.name)
         for i in reversed(list(_j.releases.keys())):
+            _i = parse(i)
             if not self.version_constraints:
-                return i
-            if i.fits_constraints(self.version_constraints) and not (
-                not allow_pre and i.is_prerelease
+                return _i
+            if _i.fits_constraints(self.version_constraints) and not (
+                not allow_pre and _i.is_prerelease
             ):
-                return i
+                return _i
         return None
     
     @property

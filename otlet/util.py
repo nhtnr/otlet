@@ -27,6 +27,9 @@ Utility functions for otlet
 from warnings import warn
 
 
-def deprecated(msg: str = ""):
-    """Print DeprecationWarning with given text."""
-    warn(msg, DeprecationWarning, 2)
+def deprecated(deprecated_version, extra=''):
+    """Simple decorator for deprecated functions and methods."""
+    def print_message(f):
+        warn(f"As of version {deprecated_version} this function ({f.__name__}) is deprecated, and will be removed in the next major release. {extra}", DeprecationWarning, 2)
+        return f
+    return print_message

@@ -31,7 +31,7 @@ class OtletError(Exception):
     def __init__(self, message: str = None) -> None:
         super().__init__(message)
 
-class NotPopulatedError(Exception):
+class NotPopulatedError(OtletError):
     """Raised when a user tries to call a PackageDependencyObject property that requires population."""
     def __init__(self, property_name: str) -> None:
         super().__init__(f"Object must first be populated using the 'populate()' method before accessing the '{property_name}' property.")
@@ -42,7 +42,7 @@ class PyPIAPIError(Exception):
     def __init__(self, message: str = None) -> None:
         super().__init__(message)
 
-class PyPIServiceDown(Exception):
+class PyPIServiceDown(PyPIAPIError):
     """Raised when API returns a 503 status code."""
 
     def __init__(self) -> None:
@@ -56,7 +56,6 @@ class PyPIPackageNotFound(PyPIAPIError):
             f"Package '{package}' not found in PyPI repository. Please check your spelling and try again."
         )
 
-
 class PyPIPackageVersionNotFound(PyPIAPIError):
     """Raised when a specified package WAS found, but the specified version WAS NOT."""
 
@@ -64,7 +63,6 @@ class PyPIPackageVersionNotFound(PyPIAPIError):
         super().__init__(
             f"Version {release} not found for package '{package}' in PyPI repository. Please double-check and try again."
         )
-
 
 class HashDigestMatchError(Exception):
     """Raised when two hash digests do not match."""

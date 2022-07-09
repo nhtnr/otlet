@@ -17,6 +17,8 @@ if hasattr(sys, "implementation"):
 else:
     _IMPL_VER = "0"
 
+#: Dictionary containing all PEP 508-compliant environment markers for the current platform
+#: (see https://peps.python.org/pep-0508/#environment-markers for more info).
 DEPENDENCY_ENVIRONMENT_MARKERS = {
     "os_name": os.name,
     "sys_platform": sys.platform,

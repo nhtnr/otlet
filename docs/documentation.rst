@@ -1,6 +1,9 @@
 API documentation
 =================================
 
+.. automodule:: otlet.markers
+    :members:
+    :no-value:
 
 .. automodule:: otlet.api
     :show-inheritance:

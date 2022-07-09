@@ -223,15 +223,17 @@ class PackageInfoObject(PackageBase):
             req_split = req.split(';')
 
             _pkg = req_split[0].split() # package name
-            _p_match = re.match(r'(\w+)(\[[^\]]*\])(\S+)', _pkg[0]) # match for extra grabs, if any
+            #_p_match = re.match(r'(\w+)(\[[^\]]*\])([!=<>]+)(\S+)', _pkg[0]) # match for extra grabs, if any
+            _p_match = re.match(r'(\S+?)([!><=]+)(\S+)', _pkg[0])
             if not _p_match:
-                pkg = _pkg[0], None # type: ignore
+                pkg = _pkg[0]
+                pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             else:
-                pkg = _p_match.group(1), re.sub(r'[\]\[]', '', _p_match.group(2)) # type: ignore
+                pkg = _p_match.group(1)
+                pkg_vcon = _p_match.group(2) + _p_match.group(3) # dependency version constraint(s)
 
-            pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
             pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
-            packages[pkg[0]] = {"version_constraints": pkg_vcon, "markers": {}, "extras": []}
+            packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}, "extras": []}
             if not pkgq:
                 continue
             for constraint in pkgq:
@@ -252,12 +254,12 @@ class PackageInfoObject(PackageBase):
 
                 for m in _m:
                     if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
-                        packages[pkg[0]]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
+                        packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
                         continue
                     if m.group(1) == "extra": # type: ignore
-                        packages[pkg[0]]["extras"].append(m.group(3)) # type: ignore
+                        packages[pkg]["extras"].append(m.group(3)) # type: ignore
                         continue
-                    packages[pkg[0]]["markers"][m.group(1)] =  m.group(3) # type: ignore
+                    packages[pkg]["markers"][m.group(1)] =  m.group(3) # type: ignore
         # fmt: on
         if not disregard_extras:
             for k, v in packages.copy().items():
@@ -472,6 +474,12 @@ class PackageObject(PackageBase):
                     continue
                 self.releases[parse(k)] = URLReleaseObject.construct(v[0])
 
+    def populate_dependencies(self, depth=0) -> None:
+        """Populate all dependencies for a package."""
+        for dep in self.dependencies:
+            dep.populate(depth)
+        return
+
     @property
     def canonicalized_name(self) -> str:
         return (
@@ -494,7 +502,7 @@ class PackageObject(PackageBase):
             return None
 
     @property
-    def dependencies(self) -> dict:
+    def dependencies(self) -> list:
         return self.info.requires_dist  # type: ignore
 
     @property
@@ -521,7 +529,7 @@ class PackageDependencyObject(PackageObject):
             else None
         )
         self.markers = markers
-        self.extras = extras
+        self.requires_extras = extras
         self.is_populated = False
 
     def __repr__(self) -> str:

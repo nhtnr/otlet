@@ -466,10 +466,11 @@ class PackageObject(PackageBase):
             for _ in self.http_response["vulnerabilities"]
         ] or None
 
-        for k, v in self.http_response["releases"].items():
-            if not v:
-                continue
-            self.releases[parse(k)] = URLReleaseObject.construct(v[0])
+        if not release:
+            for k, v in self.http_response["releases"].items():
+                if not v:
+                    continue
+                self.releases[parse(k)] = URLReleaseObject.construct(v[0])
 
     @property
     def canonicalized_name(self) -> str:
@@ -577,9 +578,6 @@ class PackageDependencyObject(PackageObject):
         if not self.is_populated:
             raise NotPopulatedError('dependency_count')
         return super().dependency_count
-    
-
-
 
 __all__ = [
     "PackageInfoObject",

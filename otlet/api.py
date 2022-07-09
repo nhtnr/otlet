@@ -218,7 +218,7 @@ class PackageInfoObject(PackageBase):
             return None
 
         # fmt: off
-        packages = dict()
+        packages: Dict[Any, Any] = dict()
         for req in reqs:
             req_split = req.split(';')
 
@@ -238,19 +238,16 @@ class PackageInfoObject(PackageBase):
                 continue
             for constraint in pkgq:
                 _c = constraint.strip().split(' or ')
+                c = []
                 if len(_c) == 1:
-                    c = re.sub(r'[()\s"\']', '', constraint.strip())
+                    c = [re.sub(r'[()\s"\']', '', constraint.strip())]
                 else:
-                    c = []
                     for i in _c:
                         c.append(re.sub(r'[()\s"\']', '', i.strip()))
 
                 _m = []
-                if isinstance(c, list):
-                    for i in c:
-                        _m.append(re.match(r"(\w+)([!=<>]+)(\S+)", i))
-                else:
-                    _m.append(re.match(r"(\w+)([!=<>]+)(\S+)", c))
+                for i in c:
+                    _m.append(re.match(r"(\w+)([!=<>]+)(\S+)", i))
 
                 for m in _m:
                     if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
@@ -577,7 +574,7 @@ class PackageDependencyObject(PackageObject):
             raise NotPopulatedError('upload_time')
         return super().upload_time
     @property
-    def dependencies(self) -> dict:
+    def dependencies(self) -> list:
         if not self.is_populated:
             raise NotPopulatedError('dependencies')
         return super().dependencies

@@ -186,6 +186,8 @@ class PackageInfoObject(PackageBase):
         release: Optional[str] = None,
         perform_request: bool = True,
         http_response: Dict[str, Any] = None,
+        disregard_extras=False, 
+        disregard_markers=False
     ) -> None:
         if perform_request:
             super().__init__(package_name, release)
@@ -203,7 +205,7 @@ class PackageInfoObject(PackageBase):
             elif k == "version":
                 self.__dict__[k] = parse(v)
             elif k == "requires_dist":
-                _parsed = self._parse_dependencies(v, package_extras)
+                _parsed = self._parse_dependencies(v, package_extras, disregard_extras, disregard_markers)
                 self._parsed_deps = _parsed
                 if _parsed:
                     _obj = [
@@ -219,7 +221,7 @@ class PackageInfoObject(PackageBase):
                 self.__dict__[k] = v
 
     @staticmethod
-    def _parse_dependencies(reqs: list, extras: list, disregard_extras=False, disregard_markers=False) -> Optional[dict]:
+    def _parse_dependencies(reqs: list, extras: list, disregard_extras, disregard_markers) -> Optional[dict]:
         if not reqs:
             return None
 
@@ -267,37 +269,43 @@ class PackageInfoObject(PackageBase):
         if not disregard_extras:
             for k, v in packages.copy().items():
                 # this is crappy opt, change asap
-                if v.get("extra") and v["extra"] not in extras:
-                    packages.pop(k)
+                if v.get("extras"):
+                    for extra in v["extras"]:
+                        if extra not in extras:
+                            try:
+                                packages.pop(k)
+                            except KeyError:
+                                continue
 
-        # dictionary holding each package, with info on whether or not
-        # every marker constraint is met for a given package
-        _pkg_wmarks: dict = dict()
-        for k in packages:
-            _pkg_wmarks[k] = []
-        for k, v in packages.copy().items():
-            for _k, _v in v["markers"].items():
-                # seperate if condition for python_version-like markers
-                # uses Version.fits_constraints() method to confirm constraint(s)
-                if _k in [
-                    "python_version",
-                    "python_full_version",
-                    "implementation_version",
-                ]:
-                    if DEPENDENCY_ENVIRONMENT_MARKERS[_k].fits_constraints(
-                        re.sub("[)(]", "", _v).split(",")
-                    ):
+        if not disregard_markers:
+            # dictionary holding each package, with info on whether or not
+            # every marker constraint is met for a given package
+            _pkg_wmarks: dict = dict()
+            for k in packages:
+                _pkg_wmarks[k] = []
+            for k, v in packages.copy().items():
+                for _k, _v in v["markers"].items():
+                    # seperate if condition for python_version-like markers
+                    # uses Version.fits_constraints() method to confirm constraint(s)
+                    if _k in [
+                        "python_version",
+                        "python_full_version",
+                        "implementation_version",
+                    ]:
+                        if DEPENDENCY_ENVIRONMENT_MARKERS[_k].fits_constraints(
+                            re.sub("[)(]", "", _v).split(",")
+                        ):
+                            _pkg_wmarks[k].append(True)
+                        else:
+                            _pkg_wmarks[k].append(False)
+                    # regular if condition for all other markers
+                    elif _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
                         _pkg_wmarks[k].append(True)
                     else:
                         _pkg_wmarks[k].append(False)
-                # regular if condition for all other markers
-                elif _v == DEPENDENCY_ENVIRONMENT_MARKERS[_k]:
-                    _pkg_wmarks[k].append(True)
-                else:
-                    _pkg_wmarks[k].append(False)
-        for k, v in _pkg_wmarks.items():
-            if not all(v):
-                packages.pop(k)
+            for k, v in _pkg_wmarks.items():
+                if not all(v):
+                    packages.pop(k)
 
         return packages
 
@@ -461,10 +469,10 @@ class PackageObject(PackageBase):
         Converted from dataclass into callable object.
     """
 
-    def __init__(self, package_name: str, release: Optional[str] = None) -> None:
+    def __init__(self, package_name: str, release: Optional[str] = None, **kwargs) -> None:
         super().__init__(package_name, release)
         self.info = PackageInfoObject(
-            package_name, self.extras, release, False, self.http_response
+            package_name, self.extras, release, False, self.http_response, **kwargs
         )
         self.last_serial = self.http_response["last_serial"]
         self.releases = dict()

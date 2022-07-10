@@ -503,7 +503,7 @@ class PackageObject(PackageBase):
     @property
     def upload_time(self) -> Optional[datetime.datetime]:
         try:
-            return self.releases[self.info.version].upload_time  # type: ignore
+            return self.releases[self.version].upload_time  # type: ignore
         except KeyError:
             return None
 

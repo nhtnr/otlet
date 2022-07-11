@@ -64,20 +64,6 @@ class PyPIPackageVersionNotFound(PyPIAPIError):
             f"Version {release} not found for package '{package}' in PyPI repository. Please double-check and try again."
         )
 
-class HashDigestMatchError(Exception):
-    """Raised when two hash digests do not match."""
-
-    def __init__(
-        self,
-        cmp,
-        against,
-        *args: object,
-    ) -> None:
-        super().__init__(*args)
-        self.cmp = cmp  # hash that was being check
-        self.against = against  # hash that 'cmp' was being compared against
-
-
 __all__ = [
     "OtletError",
     "NotPopulatedError",
@@ -85,5 +71,4 @@ __all__ = [
     "PyPIServiceDown",
     "PyPIPackageNotFound",
     "PyPIPackageVersionNotFound",
-    "HashDigestMatchError",
 ]

@@ -6,20 +6,20 @@
 ### What's new?
 <hr width=300 style="margin-left: 0;">
 
-### ```otlet.api.PackageBase```
+### ```api.PackageBase```
 - base class for PackageObject and PackageInfoObject
 
-### ```otlet.api.PackageDependencyObject```
-- subclass of "otlet.api.PackageObject"
+### ```api.PackageDependencyObject```
+- subclass of "api.PackageObject"
 - represents a dependency for a given package
 
-### ```otlet.markers.DEPENDENCY_ENVIRONMENT_MARKERS```
+### ```markers.DEPENDENCY_ENVIRONMENT_MARKERS```
 - holds respective values for each environment marker for the current system as per PEP 508
 
 ### What's changed?
 <hr width=300 style="margin-left: 0;">
 
-### ```PackageObject```
+### ```api.PackageObject```
 - converted from dataclass to callable object
 - added ```dependencies``` and ```dependency_count``` properties
 - added ```populate_dependencies()``` method
@@ -28,17 +28,17 @@
   - ```disregard_extras``` and ```disregard_markers```
   - see [PackageInfoObject](#packageinfoobject) for more on these
 
-### ```PackageInfoObject```
+### ```api.PackageInfoObject```
 - converted from dataclass to callable object
 - accepts ***2*** new ```**kwargs```:
   - ```disregard_extras``` and ```disregard_markers```
     - boolean values used to tell the dependency parser whether or not to
     care about extras/markers when parsing a given package's dependencies.
 
-## ```PackageVulnerabilitiesObject```
+## ```api.PackageVulnerabilitiesObject```
 - ```fixed_in``` property now contains ```List[Version]``` instead of ```List[str]```
 
-### ```otlet.packaging.version.Version```
+### ```packaging.version.Version```
 - added ```fits_constraints()``` method
     - checks to see if a particular version fits within certain version constraints
     - i.e. 'Version("1.0.0").fits_constraints('(>=0.9.0, <1.1.0)')' will evaluate to 'True'
@@ -46,11 +46,12 @@
 ### What's gone?
 <hr width=300 style="margin-left: 0;">
 
-- ```otlet.api.get_release_full()```
-- ```otlet.api.get_release_info()```
-- ```otlet.api.get_package()```
-- ```otlet.api.get_package_info()```
-- ```otlet.api.download_dist()```
+- ```api.get_release_full()```
+- ```api.get_release_info()```
+- ```api.get_package()```
+- ```api.get_package_info()```
+- ```api.download_dist()```
+- ```exceptions.HashDigestMatchError```
 
 <!-- The great CHANGELOG.md styling schism. -->
 

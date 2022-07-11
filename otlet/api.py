@@ -36,7 +36,7 @@ from types import SimpleNamespace
 from dataclasses import dataclass
 from .markers import DEPENDENCY_ENVIRONMENT_MARKERS
 from .exceptions import NotPopulatedError, OtletError
-from .packaging.version import Version, parse
+from .packaging.version import Version, parse as parse_version
 from .exceptions import *
 
 class PackageBase(object):
@@ -93,6 +93,12 @@ class PackageInfoObject(PackageBase):
 
     :param http_response: JSON-parsed HTTP Response to be used to populate object (optional)
     :type http_response: Dict[str, Any]
+
+    :param disregard_extras: Whether or not the dependency parser should care about extras when parsing (Default: False) 
+    :type disregard_extras: bool
+
+    :param disregard_markers: Whether or not the dependency parser should care about environment markers (excluding extras) when parsing (Default: False) 
+    :type disregard_markers: bool
 
     :var author: Author of the package
     :vartype author: str
@@ -203,7 +209,7 @@ class PackageInfoObject(PackageBase):
             if v == "":
                 self.__dict__[k] = None
             elif k == "version":
-                self.__dict__[k] = parse(v)
+                self.__dict__[k] = parse_version(v)
             elif k == "requires_dist":
                 _parsed = self._parse_dependencies(v, package_extras, disregard_extras, disregard_markers)
                 self._parsed_deps = _parsed
@@ -407,7 +413,7 @@ class PackageVulnerabilitiesObject:
     :type details: str
 
     :param fixed_in: Version(s) that the vulnerability was patched in
-    :type fixed_in: List[str]
+    :type fixed_in: List[Union[:class:`packaging.version.Version`, :class:`packaging.version.LegacyVersion`]]
 
     :param id: 'PYSEC-ID' for this vulnerability
     :type id: str
@@ -433,7 +439,7 @@ class PackageVulnerabilitiesObject:
         return cls(
             vuln_dict["aliases"],
             vuln_dict["details"],
-            vuln_dict["fixed_in"],
+            [parse_version(v) for v in vuln_dict["fixed_in"]],
             vuln_dict["id"],
             vuln_dict["link"],
             vuln_dict["source"],
@@ -449,6 +455,12 @@ class PackageObject(PackageBase):
 
     :param release: Specific version to query (optional)
     :type release: str
+
+    :param disregard_extras: Whether or not the dependency parser should care about extras when parsing (Default: False) 
+    :type disregard_extras: bool
+
+    :param disregard_markers: Whether or not the dependency parser should care about environment markers (excluding extras) when parsing (Default: False) 
+    :type disregard_markers: bool
 
     :var info: Info about a given package version
     :vartype info: :class:`~PackageInfoObject`
@@ -581,7 +593,7 @@ class PackageDependencyObject(PackageObject):
         """Fetches the maximum allowable version that fits within self.version_constraints, or None if no possible version is available."""
         _j = PackageObject(self.name)
         for i in reversed(list(_j.releases.keys())):
-            _i = parse(i)
+            _i = parse_version(i)
             if not self.version_constraints:
                 return _i
             if _i.fits_constraints(self.version_constraints) and not (

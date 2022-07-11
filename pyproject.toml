@@ -14,7 +14,6 @@ python = "^3.6"
 Sphinx = {version = "^4.5.0", optional = true}
 sphinx-rtd-theme = {version = "^1.0.0", optional = true}
 otlet-cli = {version = "^1.0.0rc1", optional = true, markers = "python_version>='3.7'"}
-dataclasses = {version = "^0.8", markers = "python_version=='3.6'", optional = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"

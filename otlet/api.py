@@ -31,11 +31,9 @@ import json
 from http.client import HTTPResponse
 from urllib.request import urlopen
 from urllib.error import HTTPError
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict, List, NamedTuple
 from types import SimpleNamespace
-from dataclasses import dataclass
 from .markers import DEPENDENCY_ENVIRONMENT_MARKERS
-from .exceptions import NotPopulatedError, OtletError
 from .packaging.version import Version, parse as parse_version
 from .exceptions import *
 
@@ -316,8 +314,7 @@ class PackageInfoObject(PackageBase):
         return packages
 
 
-@dataclass
-class URLReleaseObject:
+class URLReleaseObject(NamedTuple):
     """
     Object containing information about a specific release of a PyPI package. Data taken from either the 'urls' or 'releases' API response keys. Should not be directly called.
 
@@ -401,8 +398,7 @@ class URLReleaseObject:
         )
 
 
-@dataclass
-class PackageVulnerabilitiesObject:
+class PackageVulnerabilitiesObject(NamedTuple):
     """
     Contains information about applicable package vulnerabilities, mainly sourced from 'https://osv.dev/'. Data taken from the 'vulnerabilities' API response key. Should not be directly called.
 

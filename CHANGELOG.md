@@ -37,6 +37,10 @@
 
 ## ```api.PackageVulnerabilitiesObject```
 - ```fixed_in``` property now contains ```List[Version]``` instead of ```List[str]```
+- convert from ```dataclass``` to ```NamedTuple```
+
+## ```api.URLReleaseObject```
+- convert from ```dataclass``` to ```NamedTuple```
 
 ### ```packaging.version.Version```
 - added ```fits_constraints()``` method

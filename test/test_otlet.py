@@ -11,6 +11,8 @@ def test_packageobject_fail_nopkg() -> bool:
 def test_packageobject_fail_noversion() -> bool:
     with pytest.raises(PyPIPackageVersionNotFound):
         pkg = PackageObject("otlet-test-project", "1.0.0")
+    with pytest.raises(PyPIPackageNotFound):
+        pkg = PackageObject("thispackagedoesnotexistinthepypirepository123456789", "1.0.0")
 
 ### otlet.api.PackageInfoObject ###
 

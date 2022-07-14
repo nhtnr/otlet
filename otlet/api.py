@@ -63,6 +63,11 @@ class PackageBase(object):
             if self.release is None:
                 res = urlopen(f"https://pypi.org/pypi/{self.name}/json")
             else:
+                try:
+                    urlopen(f"https://pypi.org/pypi/{self.name}/json")
+                except HTTPError as err:
+                    if err.code == 404:
+                        raise PyPIPackageNotFound(self.name)
                 res = urlopen(f"https://pypi.org/pypi/{self.name}/{self.release}/json")
         except HTTPError as err:
             if err.code == 404:

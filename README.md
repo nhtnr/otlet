@@ -1,7 +1,6 @@
 <div align="center">
     <img src="https://commedesgarcons.s-ul.eu/Ht5pZjlN" alt="otlet readme image"><br>
     Zero-dependency, pure-python wrapper for the PyPI JSON Web API.
-</div>
 
 [![Documentation Status](https://readthedocs.org/projects/otlet/badge/?version=latest)](https://otlet.readthedocs.io/en/latest/?badge=latest)
 [![license-mit](https://img.shields.io/pypi/l/otlet)](https://github.com/nhtnr/otlet/blob/main/LICENSE)
@@ -10,6 +9,8 @@
 [![github-pull-requests](https://img.shields.io/github/issues-pr/nhtnr/otlet)](https://github.com/nhtnr/otlet/pulls)
 ![pypi-python-versions](https://img.shields.io/pypi/pyversions/otlet)
 [![pypi-package-version](https://img.shields.io/pypi/v/otlet)](https://pypi.org/project/otlet/)
+
+</div>
 
 # Installing
 

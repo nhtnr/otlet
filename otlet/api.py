@@ -31,7 +31,7 @@ import json
 from http.client import HTTPResponse
 from urllib.request import urlopen
 from urllib.error import HTTPError
-from typing import Any, Optional, Dict, List, NamedTuple
+from typing import Any, Optional, Dict, List, NamedTuple, Tuple
 from types import SimpleNamespace
 from .markers import DEPENDENCY_ENVIRONMENT_MARKERS
 from .packaging.version import Version, parse as parse_version
@@ -160,6 +160,9 @@ class PackageInfoObject(_PackageBase):
     :var platform: Legacy attribute (deprecated)
     :vartype platform: Optional[str]
 
+    :var possible_extras: List of extras that are possible for the package.
+    :vartype possible_extras: Tuple[str]
+
     :var project_url: Main URL for the package
     :vartype project_url: str
 
@@ -217,7 +220,7 @@ class PackageInfoObject(_PackageBase):
             elif k == "version":
                 self.__dict__[k] = parse_version(v)
             elif k == "requires_dist":
-                _parsed = self._parse_dependencies(
+                _parsed, self.possible_extras = self._parse_dependencies(
                     v, package_extras, disregard_extras, disregard_markers
                 )
                 self._parsed_deps = _parsed
@@ -237,17 +240,18 @@ class PackageInfoObject(_PackageBase):
     @staticmethod
     def _parse_dependencies(
         reqs: list, extras: Optional[list], disregard_extras, disregard_markers
-    ) -> Optional[dict]:
+    ) -> Tuple[Optional[dict], Optional[tuple]]:
         # if you're reading this, i'm so sorry
         # i know this is bad, but honestly it works and i'm too scared
         # to touch it, at least for right now. so yeah.
 
         if not reqs:
-            return None
+            return (None, None)
         if not extras:
             extras = []
 
-        packages: Dict[Any, Any] = dict()
+        packages: Dict[Any, Any] = {}
+        root_extras = set()
         for req in reqs:
             req_split = req.split(";")
 
@@ -309,6 +313,7 @@ class PackageInfoObject(_PackageBase):
                 hitcount = 0
                 if v.get("extras"):
                     for extra in v["extras"]:
+                        root_extras.add(extra)
                         if extra not in extras:
                             hitcount += 1
                             if hitcount == len(v["extras"]):
@@ -348,7 +353,7 @@ class PackageInfoObject(_PackageBase):
                 if not all(v):
                     packages.pop(k)
 
-        return packages
+        return packages, tuple(root_extras)
 
 
 class URLReleaseObject(NamedTuple):

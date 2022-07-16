@@ -59,22 +59,18 @@ class PackageBase(object):
 
     def _attempt_request(self) -> HTTPResponse:
         """Attempt PyPI API request for package. You should not need to call this function directly."""
+        _pkexists = False
         try:
-            if self.release is None:
-                res = urlopen(f"https://pypi.org/pypi/{self.name}/json")
-            else:
-                try:
-                    urlopen(f"https://pypi.org/pypi/{self.name}/json")
-                except HTTPError as err:
-                    if err.code == 404:
-                        raise PyPIPackageNotFound(self.name)
+            res = urlopen(f"https://pypi.org/pypi/{self.name}/json")
+            _pkexists = True
+            if self.release:
                 res = urlopen(f"https://pypi.org/pypi/{self.name}/{self.release}/json")
         except HTTPError as err:
             if err.code == 404:
-                if self.release is None:
-                    raise PyPIPackageNotFound(self.name)
-                raise PyPIPackageVersionNotFound(self.name, self.release)
-            if err.code == 503:
+                if _pkexists:
+                    raise PyPIPackageVersionNotFound(self.name, self.release)
+                raise PyPIPackageNotFound(self.name)
+            elif err.code == 503:
                 raise PyPIServiceDown
             else:
                 raise err

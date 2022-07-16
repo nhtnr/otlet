@@ -35,9 +35,16 @@ from typing import Any, Optional, Dict, List, NamedTuple
 from types import SimpleNamespace
 from .markers import DEPENDENCY_ENVIRONMENT_MARKERS
 from .packaging.version import Version, parse as parse_version
-from .exceptions import *
+from .exceptions import (
+    OtletError,
+    NotPopulatedError,
+    PyPIServiceDown,
+    PyPIPackageNotFound,
+    PyPIPackageVersionNotFound,
+)
 
-class PackageBase(object):
+
+class _PackageBase:
     """
     Base for :class:`~PackageObject` and :class:`~PackageInfoObject`. Should not be directly instantiated.
     """
@@ -68,16 +75,16 @@ class PackageBase(object):
         except HTTPError as err:
             if err.code == 404:
                 if _pkexists:
-                    raise PyPIPackageVersionNotFound(self.name, self.release)
-                raise PyPIPackageNotFound(self.name)
-            elif err.code == 503:
-                raise PyPIServiceDown
+                    raise PyPIPackageVersionNotFound(self.name, self.release) from err # type: ignore
+                raise PyPIPackageNotFound(self.name) from err
+            if err.code == 503:
+                raise PyPIServiceDown from err
             else:
                 raise err
         return res
 
 
-class PackageInfoObject(PackageBase):
+class PackageInfoObject(_PackageBase):
     """
     Object containing information about a given PyPI package. Data taken from the 'info' API response key.
 
@@ -93,10 +100,10 @@ class PackageInfoObject(PackageBase):
     :param http_response: JSON-parsed HTTP Response to be used to populate object (optional)
     :type http_response: Dict[str, Any]
 
-    :param disregard_extras: Whether or not the dependency parser should care about extras when parsing (Default: False) 
+    :param disregard_extras: Whether or not the dependency parser should care about extras when parsing (Default: False)
     :type disregard_extras: bool
 
-    :param disregard_markers: Whether or not the dependency parser should care about environment markers (excluding extras) when parsing (Default: False) 
+    :param disregard_markers: Whether or not the dependency parser should care about environment markers (excluding extras) when parsing (Default: False)
     :type disregard_markers: bool
 
     :var author: Author of the package
@@ -187,12 +194,12 @@ class PackageInfoObject(PackageBase):
     def __init__(
         self,
         package_name: str,
-        package_extras: list = [],
+        package_extras: Optional[list] = None,
         release: Optional[str] = None,
         perform_request: bool = True,
         http_response: Dict[str, Any] = None,
-        disregard_extras=False, 
-        disregard_markers=False
+        disregard_extras=False,
+        disregard_markers=False,
     ) -> None:
         if perform_request:
             super().__init__(package_name, release)
@@ -210,7 +217,9 @@ class PackageInfoObject(PackageBase):
             elif k == "version":
                 self.__dict__[k] = parse_version(v)
             elif k == "requires_dist":
-                _parsed = self._parse_dependencies(v, package_extras, disregard_extras, disregard_markers)
+                _parsed = self._parse_dependencies(
+                    v, package_extras, disregard_extras, disregard_markers
+                )
                 self._parsed_deps = _parsed
                 if _parsed:
                     _obj = [
@@ -226,66 +235,93 @@ class PackageInfoObject(PackageBase):
                 self.__dict__[k] = v
 
     @staticmethod
-    def _parse_dependencies(reqs: list, extras: list, disregard_extras, disregard_markers) -> Optional[dict]:
+    def _parse_dependencies(
+        reqs: list, extras: Optional[list], disregard_extras, disregard_markers
+    ) -> Optional[dict]:
+        # if you're reading this, i'm so sorry
+        # i know this is bad, but honestly it works and i'm too scared
+        # to touch it, at least for right now. so yeah.
+
         if not reqs:
             return None
+        if not extras:
+            extras = []
 
-        # fmt: off
         packages: Dict[Any, Any] = dict()
         for req in reqs:
-            req_split = req.split(';')
+            req_split = req.split(";")
 
-            _pkg = req_split[0].split() # package name
-            _p_match = re.match(r'(\S+?)([!><=]+)(\S+)', _pkg[0]) # match for non-parenthetical version constraints (i.e. 'coverage[toml]>=5.0.2')
+            _pkg = req_split[0].split()  # package name
+            _p_match = re.match(
+                r"(\S+?)([!><=]+)(\S+)", _pkg[0]
+            )  # match for non-parenthetical version constraints (i.e. 'coverage[toml]>=5.0.2')
             if not _p_match:
                 pkg = _pkg[0]
-                pkg_vcon = _pkg[1] if len(_pkg) > 1 else None # dependency version constraint(s)
+                pkg_vcon = (
+                    _pkg[1] if len(_pkg) > 1 else None
+                )  # dependency version constraint(s)
             else:
                 pkg = _p_match.group(1)
-                pkg_vcon = _p_match.group(2) + _p_match.group(3) # dependency version constraint(s)
+                pkg_vcon = _p_match.group(2) + _p_match.group(
+                    3
+                )  # dependency version constraint(s)
 
-            pkgq = req_split[1].split(" and ") if len(req_split) > 1 else None # installation qualifiers (extras, platform dependencies, etc.)
-            if pkg not in packages.keys(): # check if pkg key has already been initialized, due to some packages stating their dependencies multiple times (i.e. 'argon2-cffi')
-                packages[pkg] = {"version_constraints": pkg_vcon, "markers": {}, "extras": []}
-            if not pkgq: # if the dependency has no markers, then no additional parsing is needed
+            pkgq = (
+                req_split[1].split(" and ") if len(req_split) > 1 else None
+            )  # installation qualifiers (extras, platform dependencies, etc.)
+            if (
+                pkg not in packages.keys()
+            ):  # check if pkg key has already been initialized, due to some packages stating their dependencies multiple times (i.e. 'argon2-cffi')
+                packages[pkg] = {
+                    "version_constraints": pkg_vcon,
+                    "markers": {},
+                    "extras": [],
+                }
+            if (
+                not pkgq
+            ):  # if the dependency has no markers, then no additional parsing is needed
                 continue
             for constraint in pkgq:
-                _c = constraint.strip().split(' or ')
+                _c = constraint.strip().split(" or ")
                 c = []
                 if len(_c) == 1:
-                    c = [re.sub(r'[()\s"\']', '', constraint.strip())]
+                    c = [re.sub(r'[()\s"\']', "", constraint.strip())]
                 else:
                     for i in _c:
-                        c.append(re.sub(r'[()\s"\']', '', i.strip()))
+                        c.append(re.sub(r'[()\s"\']', "", i.strip()))
 
                 _m = []
                 for i in c:
                     _m.append(re.match(r"(\w+)([!=<>]+)(\S+)", i))
 
                 for m in _m:
-                    if m.group(1) in ["python_version", "python_full_version", "implementation_version"]: # type: ignore
-                        packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3) # type: ignore
+                    if m.group(1) in ["python_version", "python_full_version", "implementation_version"]:  # type: ignore
+                        packages[pkg]["markers"][m.group(1)] = m.group(2) + m.group(3)  # type: ignore
                         continue
-                    if m.group(1) == "extra": # type: ignore
-                        packages[pkg]["extras"].append(m.group(3)) # type: ignore
+                    if m.group(1) == "extra":  # type: ignore
+                        packages[pkg]["extras"].append(m.group(3))  # type: ignore
                         continue
-                    packages[pkg]["markers"][m.group(1)] =  m.group(3) # type: ignore
-        # fmt: on
+                    packages[pkg]["markers"][m.group(1)] = m.group(3)  # type: ignore
+
+        # extra checker
         if not disregard_extras:
             for k, v in packages.copy().items():
-                # this is crappy opt, change asap
+                hitcount = 0
                 if v.get("extras"):
                     for extra in v["extras"]:
                         if extra not in extras:
-                            try:
-                                packages.pop(k)
-                            except KeyError:
-                                continue
+                            hitcount += 1
+                            if hitcount == len(v["extras"]):
+                                try:
+                                    packages.pop(k)
+                                except KeyError:
+                                    continue
 
+        # environment marker checker
         if not disregard_markers:
             # dictionary holding each package, with info on whether or not
             # every marker constraint is met for a given package
-            _pkg_wmarks: dict = dict()
+            _pkg_wmarks: dict = {}
             for k in packages:
                 _pkg_wmarks[k] = []
             for k, v in packages.copy().items():
@@ -443,7 +479,7 @@ class PackageVulnerabilitiesObject(NamedTuple):
         )
 
 
-class PackageObject(PackageBase):
+class PackageObject(_PackageBase):
     """
     Object containing all relevant information for a given PyPI package.
 
@@ -453,10 +489,10 @@ class PackageObject(PackageBase):
     :param release: Specific version to query (optional)
     :type release: str
 
-    :param disregard_extras: Whether or not the dependency parser should care about extras when parsing (Default: False) 
+    :param disregard_extras: Whether or not the dependency parser should care about extras when parsing (Default: False)
     :type disregard_extras: bool
 
-    :param disregard_markers: Whether or not the dependency parser should care about environment markers (excluding extras) when parsing (Default: False) 
+    :param disregard_markers: Whether or not the dependency parser should care about environment markers (excluding extras) when parsing (Default: False)
     :type disregard_markers: bool
 
     :var info: Info about a given package version
@@ -478,13 +514,15 @@ class PackageObject(PackageBase):
         Converted from dataclass into callable object.
     """
 
-    def __init__(self, package_name: str, release: Optional[str] = None, **kwargs) -> None:
+    def __init__(
+        self, package_name: str, release: Optional[str] = None, **kwargs
+    ) -> None:
         super().__init__(package_name, release)
         self.info = PackageInfoObject(
             package_name, self.extras, release, False, self.http_response, **kwargs
         )
         self.last_serial = self.http_response["last_serial"]
-        self.releases = dict()
+        self.releases = {}
         self.urls = [URLReleaseObject.construct(_) for _ in self.http_response["urls"]]
         self.vulnerabilities = [
             PackageVulnerabilitiesObject.construct(_)
@@ -501,7 +539,6 @@ class PackageObject(PackageBase):
         """Populate all dependencies for the package."""
         for dep in self.dependencies:
             dep.populate(depth)
-        return
 
     @property
     def canonicalized_name(self) -> str:
@@ -511,7 +548,7 @@ class PackageObject(PackageBase):
 
     @property
     def version(self) -> str:
-        return self.info.version.__str__()  # type: ignore
+        return str(self.info.version)  # type: ignore
 
     @property
     def release_name(self) -> str:
@@ -561,7 +598,7 @@ class PackageDependencyObject(PackageObject):
         package_name: str,
         version_constraints: Optional[str] = None,
         markers: Optional[dict] = None,
-        extras: Optional[list] = None
+        extras: Optional[list] = None,
     ) -> None:
         self.name = package_name
         self.version_constraints = (
@@ -598,37 +635,43 @@ class PackageDependencyObject(PackageObject):
             ):
                 return _i
         return None
-    
+
     @property
     def canonicalized_name(self) -> str:
         if not self.is_populated:
-            raise NotPopulatedError('canonicalized_name')
+            raise NotPopulatedError("canonicalized_name")
         return super().canonicalized_name
+
     @property
     def version(self) -> str:
         if not self.is_populated:
-            raise NotPopulatedError('version')
+            raise NotPopulatedError("version")
         return super().version
+
     @property
     def release_name(self) -> str:
         if not self.is_populated:
-            raise NotPopulatedError('release_name')
+            raise NotPopulatedError("release_name")
         return super().release_name
+
     @property
     def upload_time(self) -> Optional[datetime.datetime]:
         if not self.is_populated:
-            raise NotPopulatedError('upload_time')
+            raise NotPopulatedError("upload_time")
         return super().upload_time
+
     @property
     def dependencies(self) -> list:
         if not self.is_populated:
-            raise NotPopulatedError('dependencies')
+            raise NotPopulatedError("dependencies")
         return super().dependencies
+
     @property
     def dependency_count(self) -> int:
         if not self.is_populated:
-            raise NotPopulatedError('dependency_count')
+            raise NotPopulatedError("dependency_count")
         return super().dependency_count
+
 
 __all__ = [
     "PackageInfoObject",

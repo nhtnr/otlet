@@ -28,25 +28,28 @@ Custom exceptions used by otlet
 class OtletError(Exception):
     """Base class for all Otlet related exceptions."""
 
-    def __init__(self, message: str = None) -> None:
-        super().__init__(message)
 
 class NotPopulatedError(OtletError):
     """Raised when a user tries to call a PackageDependencyObject property that requires population."""
+
     def __init__(self, property_name: str) -> None:
-        super().__init__(f"Object must first be populated using the 'populate()' method before accessing the '{property_name}' property.")
+        super().__init__(
+            f"Object must first be populated using the 'populate()' method before accessing the '{property_name}' property."
+        )
+
 
 class PyPIAPIError(Exception):
     """Base class for all PyPI-related exceptions."""
 
-    def __init__(self, message: str = None) -> None:
-        super().__init__(message)
 
 class PyPIServiceDown(PyPIAPIError):
     """Raised when API returns a 503 status code."""
 
     def __init__(self) -> None:
-        super().__init__("The PyPI backend service(s) that otlet relies on seem to be down/unstable at the moment. Please try again later or check 'https://status.python.org/' for more info.")
+        super().__init__(
+            "The PyPI backend service(s) that otlet relies on seem to be down/unstable at the moment. Please try again later or check 'https://status.python.org/' for more info."
+        )
+
 
 class PyPIPackageNotFound(PyPIAPIError):
     """Raised when a specified package WAS NOT found in the package index."""
@@ -56,6 +59,7 @@ class PyPIPackageNotFound(PyPIAPIError):
             f"Package '{package}' not found in PyPI repository. Please check your spelling and try again."
         )
 
+
 class PyPIPackageVersionNotFound(PyPIAPIError):
     """Raised when a specified package WAS found, but the specified version WAS NOT."""
 
@@ -63,6 +67,7 @@ class PyPIPackageVersionNotFound(PyPIAPIError):
         super().__init__(
             f"Version {release} not found for package '{package}' in PyPI repository. Please double-check and try again."
         )
+
 
 __all__ = [
     "OtletError",

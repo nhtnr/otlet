@@ -1,21 +1,23 @@
 #!/usr/bin/env python3
 
 import subprocess
-import configparser
+import tomlkit
 from otlet import __version__
 
 errors = []
 
 print("== BEGIN PRE-COMMIT HOOK ==")
 
-config = configparser.ConfigParser()
-config.read("pyproject.toml")
-__configversion__ = config["tool.poetry"]["version"].replace('"', '')
+f = open("pyproject.toml", 'r')
+config = tomlkit.load(f)
+__configversion__ = config["tool"]["poetry"]["version"].replace('"', '')
 
 try:
     assert __configversion__ == __version__
 except AssertionError:
     errors.append("\t - version must be identical in otlet/__init__.py and /pyproject.toml")
+    errors.append("\t\t pyproject.toml: " + __configversion__)
+    errors.append("\t\t otlet/__init__.py: " + __version__)
 
 try:
     if not errors: subprocess.check_call(["pytest"])

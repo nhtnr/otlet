@@ -312,8 +312,10 @@ class Version(_BaseVersion):
 
         return "".join(parts)
 
-    def fits_constraints(self, constraints: list) -> bool:
+    def fits_constraints(self, constraints: Union[str, list]) -> bool:
         _c = []  # type: ignore
+        if isinstance(constraints, str):
+            constraints = re.sub(r"[)(\s]", "", constraints).split(",")
         for i in constraints:
             _h = re.match(r"([=<>!]+)(\S+)", i)
             exec(f'_c.append(self {_h.group(1)} self.__class__("{_h.group(2)}"))')  # type: ignore

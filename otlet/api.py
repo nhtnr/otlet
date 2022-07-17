@@ -607,7 +607,7 @@ class PackageDependencyObject(PackageObject):
     ) -> None:
         self.name = package_name
         self.version_constraints = (
-            re.sub("[)(]", "", version_constraints).split(",")
+            re.sub(r"[)(\s]", "", version_constraints).split(",")
             if version_constraints
             else None
         )
